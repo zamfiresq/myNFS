@@ -6,29 +6,61 @@
 #include "nfs.h"
 
 bool_t
-xdr_cerere (XDR *xdrs, cerere *objp)
+xdr_request (XDR *xdrs, request *objp)
 {
-	register int32_t *buf;
+    register int32_t *buf;
 
-	 if (!xdr_string (xdrs, &objp->numeFisier, LUNGIME_FILENAME))
-		 return FALSE;
-	 if (!xdr_int (xdrs, &objp->startOffset))
-		 return FALSE;
-	return TRUE;
+    if (!xdr_string (xdrs, &objp->filename, FILENAME_LENGTH))
+        return FALSE;
+    if (!xdr_int (xdrs, &objp->start))
+        return FALSE;
+    return TRUE;
 }
 
 bool_t
 xdr_chunk (XDR *xdrs, chunk *objp)
 {
-	register int32_t *buf;
+    register int32_t *buf;
 
-	 if (!xdr_string (xdrs, &objp->fisier, LUNGIME_FILENAME))
-		 return FALSE;
-	 if (!xdr_bytes (xdrs, (char **)&objp->data.data_val, (u_int *) &objp->data.data_len, LUNGIME_FILEDATA))
-		 return FALSE;
-	 if (!xdr_int (xdrs, &objp->dim))
-		 return FALSE;
-	 if (!xdr_int (xdrs, &objp->destOffset))
-		 return FALSE;
-	return TRUE;
+    if (!xdr_string (xdrs, &objp->filename, FILENAME_LENGTH))
+        return FALSE;
+    if (!xdr_bytes (xdrs, (char **)&objp->data.data_val, (u_int *) &objp->data.data_len, DATA_LENGTH))
+        return FALSE;
+    if (!xdr_int (xdrs, &objp->size))
+        return FALSE;
+    if (!xdr_int (xdrs, &objp->dest_offset))
+        return FALSE;
+    return TRUE;
+}
+
+bool_t
+xdr_opendir_args (XDR *xdrs, opendir_args *objp)
+{
+    register int32_t *buf;
+
+    if (!xdr_string (xdrs, &objp->dirname, DIRNAME_LENGTH))
+        return FALSE;
+    return TRUE;
+}
+
+bool_t
+xdr_readdir_args (XDR *xdrs, readdir_args *objp)
+{
+    register int32_t *buf;
+
+    if (!xdr_string (xdrs, &objp->dirname, DIRNAME_LENGTH))
+        return FALSE;
+    return TRUE;
+}
+
+bool_t
+xdr_readdir_result (XDR *xdrs, readdir_result *objp)
+{
+    register int32_t *buf;
+
+    if (!xdr_string (xdrs, &objp->filenames, MAX_FILENAMES_LENGTH))
+        return FALSE;
+    if (!xdr_bool (xdrs, &objp->more))
+        return FALSE;
+    return TRUE;
 }

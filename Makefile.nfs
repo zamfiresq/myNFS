@@ -1,0 +1,45 @@
+# Parameters
+
+CLIENT = nfs_client
+SERVER = nfs_server
+
+SOURCES_CLNT.c =
+SOURCES_CLNT.h =
+SOURCES_SVC.c =
+SOURCES_SVC.h =
+SOURCES.x = nfs.x
+
+TARGETS_SVC.c = nfs_svc.c nfs_server.c nfs_xdr.c
+TARGETS_CLNT.c = nfs_clnt.c nfs_client.c nfs_xdr.c
+TARGETS = nfs.h nfs_xdr.c nfs_clnt.c nfs_svc.c nfs_client.c nfs_server.c
+
+OBJECTS_CLNT = $(SOURCES_CLNT.c:%.c=%.o) $(TARGETS_CLNT.c:%.c=%.o)
+OBJECTS_SVC = $(SOURCES_SVC.c:%.c=%.o) $(TARGETS_SVC.c:%.c=%.o)
+# Compiler and Linker Flags
+
+CFLAGS += -g -I/usr/include/tirpc
+LDFLAGS =
+LDLIBS += -lnsl -ltirpc
+RPCGENFLAGS =
+
+# Targets
+
+all : $(CLIENT) $(SERVER)
+
+$(TARGETS) : $(SOURCES.x)
+	rpcgen $(RPCGENFLAGS) $(SOURCES.x)
+
+$(OBJECTS_CLNT) : $(SOURCES_CLNT.c) $(SOURCES_CLNT.h) $(TARGETS_CLNT.c)
+	$(CC) $(CFLAGS) -c $^
+
+$(OBJECTS_SVC) : $(SOURCES_SVC.c) $(SOURCES_SVC.h) $(TARGETS_SVC.c)
+	$(CC) $(CFLAGS) -c $^
+
+$(CLIENT) : $(OBJECTS_CLNT)
+	$(CC) -o $(CLIENT) $(OBJECTS_CLNT) $(LDFLAGS) $(LDLIBS)
+
+$(SERVER) : $(OBJECTS_SVC)
+	$(CC) -o $(SERVER) $(OBJECTS_SVC) $(LDFLAGS) $(LDLIBS)
+
+clean:
+	$(RM) core $(TARGETS) $(OBJECTS_CLNT) $(OBJECTS_SVC) $(CLIENT) $(SERVER)

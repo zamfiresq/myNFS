@@ -9,182 +9,182 @@
 /* Default timeout can be changed using clnt_control() */
 static struct timeval TIMEOUT = { 25, 0 };
 
-int *
-mynfs_open_1(char **argp, CLIENT *clnt)
-{
-	static int clnt_res;
-
-	memset((char *)&clnt_res, 0, sizeof(clnt_res));
-	if (clnt_call (clnt, MYNFS_OPEN,
-		(xdrproc_t) xdr_wrapstring, (caddr_t) argp,
-		(xdrproc_t) xdr_int, (caddr_t) &clnt_res,
-		TIMEOUT) != RPC_SUCCESS) {
-		return (NULL);
-	}
-	return (&clnt_res);
-}
-
-int *
-mynfs_close_1(int *argp, CLIENT *clnt)
-{
-	static int clnt_res;
-
-	memset((char *)&clnt_res, 0, sizeof(clnt_res));
-	if (clnt_call (clnt, MYNFS_CLOSE,
-		(xdrproc_t) xdr_int, (caddr_t) argp,
-		(xdrproc_t) xdr_int, (caddr_t) &clnt_res,
-		TIMEOUT) != RPC_SUCCESS) {
-		return (NULL);
-	}
-	return (&clnt_res);
-}
-
-int *
-mynfs_read_1(int *argp, CLIENT *clnt)
-{
-	static int clnt_res;
-
-	memset((char *)&clnt_res, 0, sizeof(clnt_res));
-	if (clnt_call (clnt, MYNFS_READ,
-		(xdrproc_t) xdr_int, (caddr_t) argp,
-		(xdrproc_t) xdr_int, (caddr_t) &clnt_res,
-		TIMEOUT) != RPC_SUCCESS) {
-		return (NULL);
-	}
-	return (&clnt_res);
-}
-
-int *
-mynfs_write_1(int *argp, CLIENT *clnt)
-{
-	static int clnt_res;
-
-	memset((char *)&clnt_res, 0, sizeof(clnt_res));
-	if (clnt_call (clnt, MYNFS_WRITE,
-		(xdrproc_t) xdr_int, (caddr_t) argp,
-		(xdrproc_t) xdr_int, (caddr_t) &clnt_res,
-		TIMEOUT) != RPC_SUCCESS) {
-		return (NULL);
-	}
-	return (&clnt_res);
-}
-
-int *
-mynfs_touch_1(char **argp, CLIENT *clnt)
-{
-	static int clnt_res;
-
-	memset((char *)&clnt_res, 0, sizeof(clnt_res));
-	if (clnt_call (clnt, MYNFS_TOUCH,
-		(xdrproc_t) xdr_wrapstring, (caddr_t) argp,
-		(xdrproc_t) xdr_int, (caddr_t) &clnt_res,
-		TIMEOUT) != RPC_SUCCESS) {
-		return (NULL);
-	}
-	return (&clnt_res);
-}
-
-int *
-mynfs_rm_1(char **argp, CLIENT *clnt)
-{
-	static int clnt_res;
-
-	memset((char *)&clnt_res, 0, sizeof(clnt_res));
-	if (clnt_call (clnt, MYNFS_RM,
-		(xdrproc_t) xdr_wrapstring, (caddr_t) argp,
-		(xdrproc_t) xdr_int, (caddr_t) &clnt_res,
-		TIMEOUT) != RPC_SUCCESS) {
-		return (NULL);
-	}
-	return (&clnt_res);
-}
-
 char **
-mynfs_ls_1(char **argp, CLIENT *clnt)
+ls_1(char **argp, CLIENT *clnt)
 {
-	static char *clnt_res;
+    static char *clnt_res;
 
-	memset((char *)&clnt_res, 0, sizeof(clnt_res));
-	if (clnt_call (clnt, MYNFS_LS,
-		(xdrproc_t) xdr_wrapstring, (caddr_t) argp,
-		(xdrproc_t) xdr_wrapstring, (caddr_t) &clnt_res,
-		TIMEOUT) != RPC_SUCCESS) {
-		return (NULL);
-	}
-	return (&clnt_res);
+    memset((char *)&clnt_res, 0, sizeof(clnt_res));
+    if (clnt_call (clnt, ls,
+                   (xdrproc_t) xdr_wrapstring, (caddr_t) argp,
+                   (xdrproc_t) xdr_wrapstring, (caddr_t) &clnt_res,
+                   TIMEOUT) != RPC_SUCCESS) {
+        return (NULL);
+    }
+    return (&clnt_res);
 }
 
 int *
-mynfs_mkdir_1(char **argp, CLIENT *clnt)
+create_1(char **argp, CLIENT *clnt)
 {
-	static int clnt_res;
+    static int clnt_res;
 
-	memset((char *)&clnt_res, 0, sizeof(clnt_res));
-	if (clnt_call (clnt, MYNFS_MKDIR,
-		(xdrproc_t) xdr_wrapstring, (caddr_t) argp,
-		(xdrproc_t) xdr_int, (caddr_t) &clnt_res,
-		TIMEOUT) != RPC_SUCCESS) {
-		return (NULL);
-	}
-	return (&clnt_res);
+    memset((char *)&clnt_res, 0, sizeof(clnt_res));
+    if (clnt_call (clnt, create,
+                   (xdrproc_t) xdr_wrapstring, (caddr_t) argp,
+                   (xdrproc_t) xdr_int, (caddr_t) &clnt_res,
+                   TIMEOUT) != RPC_SUCCESS) {
+        return (NULL);
+    }
+    return (&clnt_res);
 }
 
 int *
-mynfs_rmdir_1(char **argp, CLIENT *clnt)
+delete_1(char **argp, CLIENT *clnt)
 {
-	static int clnt_res;
+    static int clnt_res;
 
-	memset((char *)&clnt_res, 0, sizeof(clnt_res));
-	if (clnt_call (clnt, MYNFS_RMDIR,
-		(xdrproc_t) xdr_wrapstring, (caddr_t) argp,
-		(xdrproc_t) xdr_int, (caddr_t) &clnt_res,
-		TIMEOUT) != RPC_SUCCESS) {
-		return (NULL);
-	}
-	return (&clnt_res);
-}
-
-int *
-mynfs_opendir_1(char **argp, CLIENT *clnt)
-{
-	static int clnt_res;
-
-	memset((char *)&clnt_res, 0, sizeof(clnt_res));
-	if (clnt_call (clnt, MYNFS_OPENDIR,
-		(xdrproc_t) xdr_wrapstring, (caddr_t) argp,
-		(xdrproc_t) xdr_int, (caddr_t) &clnt_res,
-		TIMEOUT) != RPC_SUCCESS) {
-		return (NULL);
-	}
-	return (&clnt_res);
-}
-
-int *
-mynfs_readdir_1(int *argp, CLIENT *clnt)
-{
-	static int clnt_res;
-
-	memset((char *)&clnt_res, 0, sizeof(clnt_res));
-	if (clnt_call (clnt, MYNFS_READDIR,
-		(xdrproc_t) xdr_int, (caddr_t) argp,
-		(xdrproc_t) xdr_int, (caddr_t) &clnt_res,
-		TIMEOUT) != RPC_SUCCESS) {
-		return (NULL);
-	}
-	return (&clnt_res);
+    memset((char *)&clnt_res, 0, sizeof(clnt_res));
+    if (clnt_call (clnt, delete,
+                   (xdrproc_t) xdr_wrapstring, (caddr_t) argp,
+                   (xdrproc_t) xdr_int, (caddr_t) &clnt_res,
+                   TIMEOUT) != RPC_SUCCESS) {
+        return (NULL);
+    }
+    return (&clnt_res);
 }
 
 chunk *
-mynfs_getchunk_1(cerere *argp, CLIENT *clnt)
+retrieve_file_1(request *argp, CLIENT *clnt)
 {
-	static chunk clnt_res;
+    static chunk clnt_res;
 
-	memset((char *)&clnt_res, 0, sizeof(clnt_res));
-	if (clnt_call (clnt, MYNFS_GETCHUNK,
-		(xdrproc_t) xdr_cerere, (caddr_t) argp,
-		(xdrproc_t) xdr_chunk, (caddr_t) &clnt_res,
-		TIMEOUT) != RPC_SUCCESS) {
-		return (NULL);
-	}
-	return (&clnt_res);
+    memset((char *)&clnt_res, 0, sizeof(clnt_res));
+    if (clnt_call (clnt, retrieve_file,
+                   (xdrproc_t) xdr_request, (caddr_t) argp,
+                   (xdrproc_t) xdr_chunk, (caddr_t) &clnt_res,
+                   TIMEOUT) != RPC_SUCCESS) {
+        return (NULL);
+    }
+    return (&clnt_res);
+}
+
+int *
+send_file_1(chunk *argp, CLIENT *clnt)
+{
+    static int clnt_res;
+
+    memset((char *)&clnt_res, 0, sizeof(clnt_res));
+    if (clnt_call (clnt, send_file,
+                   (xdrproc_t) xdr_chunk, (caddr_t) argp,
+                   (xdrproc_t) xdr_int, (caddr_t) &clnt_res,
+                   TIMEOUT) != RPC_SUCCESS) {
+        return (NULL);
+    }
+    return (&clnt_res);
+}
+
+int *
+mkdir_1(char **argp, CLIENT *clnt)
+{
+    static int clnt_res;
+
+    memset((char *)&clnt_res, 0, sizeof(clnt_res));
+    if (clnt_call (clnt, mkdir,
+                   (xdrproc_t) xdr_wrapstring, (caddr_t) argp,
+                   (xdrproc_t) xdr_int, (caddr_t) &clnt_res,
+                   TIMEOUT) != RPC_SUCCESS) {
+        return (NULL);
+    }
+    return (&clnt_res);
+}
+
+int *
+open_1(char **argp, CLIENT *clnt)
+{
+    static int clnt_res;
+
+    memset((char *)&clnt_res, 0, sizeof(clnt_res));
+    if (clnt_call (clnt, open,
+                   (xdrproc_t) xdr_wrapstring, (caddr_t) argp,
+                   (xdrproc_t) xdr_int, (caddr_t) &clnt_res,
+                   TIMEOUT) != RPC_SUCCESS) {
+        return (NULL);
+    }
+    return (&clnt_res);
+}
+
+int *
+close_1(char **argp, CLIENT *clnt)
+{
+    static int clnt_res;
+
+    memset((char *)&clnt_res, 0, sizeof(clnt_res));
+    if (clnt_call (clnt, close,
+                   (xdrproc_t) xdr_wrapstring, (caddr_t) argp,
+                   (xdrproc_t) xdr_int, (caddr_t) &clnt_res,
+                   TIMEOUT) != RPC_SUCCESS) {
+        return (NULL);
+    }
+    return (&clnt_res);
+}
+
+chunk *
+read_1(request *argp, CLIENT *clnt)
+{
+    static chunk clnt_res;
+
+    memset((char *)&clnt_res, 0, sizeof(clnt_res));
+    if (clnt_call (clnt, read,
+                   (xdrproc_t) xdr_request, (caddr_t) argp,
+                   (xdrproc_t) xdr_chunk, (caddr_t) &clnt_res,
+                   TIMEOUT) != RPC_SUCCESS) {
+        return (NULL);
+    }
+    return (&clnt_res);
+}
+
+int *
+write_1(chunk *argp, CLIENT *clnt)
+{
+    static int clnt_res;
+
+    memset((char *)&clnt_res, 0, sizeof(clnt_res));
+    if (clnt_call (clnt, write,
+                   (xdrproc_t) xdr_chunk, (caddr_t) argp,
+                   (xdrproc_t) xdr_int, (caddr_t) &clnt_res,
+                   TIMEOUT) != RPC_SUCCESS) {
+        return (NULL);
+    }
+    return (&clnt_res);
+}
+
+int *
+opendir_1(opendir_args *argp, CLIENT *clnt)
+{
+    static int clnt_res;
+
+    memset((char *)&clnt_res, 0, sizeof(clnt_res));
+    if (clnt_call (clnt, opendir,
+                   (xdrproc_t) xdr_opendir_args, (caddr_t) argp,
+                   (xdrproc_t) xdr_int, (caddr_t) &clnt_res,
+                   TIMEOUT) != RPC_SUCCESS) {
+        return (NULL);
+    }
+    return (&clnt_res);
+}
+
+readdir_result *
+readdir_1(readdir_args *argp, CLIENT *clnt)
+{
+    static readdir_result clnt_res;
+
+    memset((char *)&clnt_res, 0, sizeof(clnt_res));
+    if (clnt_call (clnt, readdir,
+                   (xdrproc_t) xdr_readdir_args, (caddr_t) argp,
+                   (xdrproc_t) xdr_readdir_result, (caddr_t) &clnt_res,
+                   TIMEOUT) != RPC_SUCCESS) {
+        return (NULL);
+    }
+    return (&clnt_res);
 }
