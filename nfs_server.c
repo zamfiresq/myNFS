@@ -161,7 +161,6 @@ int *close_1_svc(char **argp, struct svc_req *rqstp){
     return &result;
 }
 
-
 chunk *read_1_svc(request *argp, int dim, struct svc_req *rqstp){
     static chunk result;
     int fd = open(argp->numeFisier, O_RDONLY); // open file for reading only
