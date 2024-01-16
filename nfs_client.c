@@ -11,11 +11,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <dirent.h>
+#include <string.h>
+#include <sys/stat.h>
+#include <errno.h>
+#include <fcntl.h>
+#include <unistd.h>
 
 
 #define NFS_PROGRAM 0x21000001
 #define NFS_VERSION_1 1
-
 
 
 void nfs_program_1(char *host) {
@@ -53,51 +57,55 @@ void nfs_program_1(char *host) {
     }
 #endif	 /* DEBUG */
 
-    result_1 = (char **) ls_1(&ls_1_arg, clnt);
+    result_1 = (char **) mynfs_ls_1(&ls_1_arg, clnt);
     if (result_1 == (char **) NULL) {
         clnt_perror (clnt, "call failed");
     }
-    result_2 = (int *) create_1(&create_1_arg, clnt);
+    result_2 = (int *) mynfs_create_1(&create_1_arg, clnt);
     if (result_2 == (int *) NULL) {
-        clnt_perror (clnt, "call failed");
+        clnt_perror(clnt, "call failed");
     }
-    result_3 = (int *) delete_1(&delete_1_arg, clnt);
+
+    result_3 = (int *) mynfs_delete_1(&delete_1_arg, clnt);
     if (result_3 == (int *) NULL) {
-        clnt_perror (clnt, "call failed");
+        clnt_perror(clnt, "call failed");
     }
-    result_4 = (chunk *) retrieve_file_1(&retrieve_file_1_arg, clnt);
+
+    result_4 = mynfs_retrieve_file_1(&retrieve_file_1_arg, clnt);
     if (result_4 == (chunk *) NULL) {
-        clnt_perror (clnt, "call failed");
+        clnt_perror(clnt, "call failed");
     }
-    result_5 = (int *) send_file_1(&send_file_1_arg, clnt);
+
+    result_5 = (int *) mynfs_send_file_1(&send_file_1_arg, clnt);
     if (result_5 == (int *) NULL) {
-        clnt_perror (clnt, "call failed");
+        clnt_perror(clnt, "call failed");
     }
-    result_6 = (int *) mkdir_1(&mkdir_1_arg, clnt);
+
+    result_6 = (int *) mynfs_mkdir_1(&mkdir_1_arg, clnt);
     if (result_6 == (int *) NULL) {
         clnt_perror (clnt, "call failed");
     }
-    result_7 = (int *) open_1(&open_1_arg, clnt);
+    result_7 = (int *) mynfs_open_1(&open_1_arg, clnt);
     if (result_7 == (int *) NULL) {
         clnt_perror (clnt, "call failed");
     }
-    result_8 = (int *) close_1(&close_1_arg, clnt);
+    result_8 = (int *) mynfs_close_1(&close_1_arg, clnt);
     if (result_8 == (int *) NULL) {
         clnt_perror (clnt, "call failed");
     }
-    result_9 = (chunk *) read_1(&read_1_arg, clnt);
+    result_9 = (chunk *) mynfs_read_1(&read_1_arg, clnt);
     if (result_9 == (chunk *) NULL) {
         clnt_perror (clnt, "call failed");
     }
-    result_10 = (int *) write_1(&write_1_arg, clnt);
+    result_10 = mynfs_write_1(&write_1_arg, clnt);
     if (result_10 == (int *) NULL) {
         clnt_perror (clnt, "call failed");
     }
-    result_11 = (int *) opendir_1(&opendir_1_arg, clnt);
+    result_11 = (int *) mynfs_opendir_1(&opendir_1_arg, clnt);
     if (result_11 == (int *) NULL) {
         clnt_perror (clnt, "call failed");
     }
-    result_12 = (readdir_result *) readdir_1(&readdir_1_arg, clnt);
+    result_12 = (readdir_result *) mynfs_readdir_1(&readdir_1_arg, clnt);
     if (result_12 == (readdir_result *) NULL) {
         clnt_perror (clnt, "call failed");
     }
