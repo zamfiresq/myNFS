@@ -8,28 +8,34 @@
  */
 
 #include "nfs.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <dirent.h>
 
 
-void
-nfs_program_1(char *host)
-{
+#define NFS_PROGRAM 0x21000001
+#define NFS_VERSION_1 1
+
+
+
+void nfs_program_1(char *host) {
     CLIENT *clnt;
-    char * *result_1;
-    char * ls_1_arg;
+    char **result_1;
+    char *ls_1_arg;
     int  *result_2;
-    char * create_1_arg;
+    char *create_1_arg;
     int  *result_3;
-    char * delete_1_arg;
+    char *delete_1_arg;
     chunk  *result_4;
     request  retrieve_file_1_arg;
     int  *result_5;
     chunk  send_file_1_arg;
     int  *result_6;
-    char * mkdir_1_arg;
+    char *mkdir_1_arg;
     int  *result_7;
     char * open_1_arg;
     int  *result_8;
-    char * close_1_arg;
+    char *close_1_arg;
     chunk  *result_9;
     request  read_1_arg;
     int  *result_10;
@@ -45,53 +51,53 @@ nfs_program_1(char *host)
         clnt_pcreateerror (host);
         exit (1);
     }
-#endif	/* DEBUG */
+#endif	 /* DEBUG */
 
-    result_1 = ls_1(&ls_1_arg, clnt);
+    result_1 = (char **) ls_1(&ls_1_arg, clnt);
     if (result_1 == (char **) NULL) {
         clnt_perror (clnt, "call failed");
     }
-    result_2 = create_1(&create_1_arg, clnt);
+    result_2 = (int *) create_1(&create_1_arg, clnt);
     if (result_2 == (int *) NULL) {
         clnt_perror (clnt, "call failed");
     }
-    result_3 = delete_1(&delete_1_arg, clnt);
+    result_3 = (int *) delete_1(&delete_1_arg, clnt);
     if (result_3 == (int *) NULL) {
         clnt_perror (clnt, "call failed");
     }
-    result_4 = retrieve_file_1(&retrieve_file_1_arg, clnt);
+    result_4 = (chunk *) retrieve_file_1(&retrieve_file_1_arg, clnt);
     if (result_4 == (chunk *) NULL) {
         clnt_perror (clnt, "call failed");
     }
-    result_5 = send_file_1(&send_file_1_arg, clnt);
+    result_5 = (int *) send_file_1(&send_file_1_arg, clnt);
     if (result_5 == (int *) NULL) {
         clnt_perror (clnt, "call failed");
     }
-    result_6 = mkdir_1(&mkdir_1_arg, clnt);
+    result_6 = (int *) mkdir_1(&mkdir_1_arg, clnt);
     if (result_6 == (int *) NULL) {
         clnt_perror (clnt, "call failed");
     }
-    result_7 = open_1(&open_1_arg, clnt);
+    result_7 = (int *) open_1(&open_1_arg, clnt);
     if (result_7 == (int *) NULL) {
         clnt_perror (clnt, "call failed");
     }
-    result_8 = close_1(&close_1_arg, clnt);
+    result_8 = (int *) close_1(&close_1_arg, clnt);
     if (result_8 == (int *) NULL) {
         clnt_perror (clnt, "call failed");
     }
-    result_9 = read_1(&read_1_arg, clnt);
+    result_9 = (chunk *) read_1(&read_1_arg, clnt);
     if (result_9 == (chunk *) NULL) {
         clnt_perror (clnt, "call failed");
     }
-    result_10 = write_1(&write_1_arg, clnt);
+    result_10 = (int *) write_1(&write_1_arg, clnt);
     if (result_10 == (int *) NULL) {
         clnt_perror (clnt, "call failed");
     }
-    result_11 = opendir_1(&opendir_1_arg, clnt);
+    result_11 = (int *) opendir_1(&opendir_1_arg, clnt);
     if (result_11 == (int *) NULL) {
         clnt_perror (clnt, "call failed");
     }
-    result_12 = readdir_1(&readdir_1_arg, clnt);
+    result_12 = (readdir_result *) readdir_1(&readdir_1_arg, clnt);
     if (result_12 == (readdir_result *) NULL) {
         clnt_perror (clnt, "call failed");
     }
@@ -101,13 +107,11 @@ nfs_program_1(char *host)
 }
 
 
-int
-main (int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
     char *host;
 
     if (argc < 2) {
-        printf ("usage: %s server_host\n", argv[0]);
+        printf ("Usage: %s server_host\n", argv[0]);
         exit (1);
     }
     host = argv[1];

@@ -11,163 +11,258 @@
 // FISIERUL PENTRU SERVER
 
 #include "nfs.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <dirent.h> // opendir, readdir, closedir
+#include <string.h>
+#include <sys/stat.h>   // mkdir
+#include <errno.h>      // errno
+#include <fcntl.h>      // open, close, read, write
+#include <unistd.h>
 
-char **
-ls_1_svc(char **argp, struct svc_req *rqstp)
-{
-    static char * result;
-
-    /*
-     * insert server code here
-     */
-
+char ** ls_1_svc(char **argp, struct svc_req *rqstp) {
+    static char *result;
+    DIR *d;
+    struct dirent *dir;
+    d = opendir(*argp);
+    if (d)
+    {
+        while ((dir = readdir(d)) != NULL)
+        {
+            printf("%s\n", dir->d_name);
+        }
+        closedir(d);
+    }
     return &result;
 }
 
-int *
-create_1_svc(char **argp, struct svc_req *rqstp)
-{
+
+int * create_1_svc(char **argp, struct svc_req *rqstp) {
     static int  result;
 
-    /*
-     * insert server code here
-     */
-
-    return &result;
-}
-
-int *
-delete_1_svc(char **argp, struct svc_req *rqstp)
-{
-    static int  result;
-
-    /*
-     * insert server code here
-     */
-
-    return &result;
-}
-
-chunk *
-retrieve_file_1_svc(request *argp, struct svc_req *rqstp)
-{
-    static chunk  result;
-
-    /*
-     * insert server code here
-     */
-
-    return &result;
-}
-
-int *
-send_file_1_svc(chunk *argp, struct svc_req *rqstp)
-{
-    static int  result;
-
-    /*
-     * insert server code here
-     */
-
-    return &result;
-}
-
-int *
-mkdir_1_svc(char **argp, struct svc_req *rqstp)
-{
-    static int  result;
-    const char *dirname = *argp;
-
-    result = mkdir(dirname, 0777); // 0777 = permisiuni read, write, execute pentru user, group si restul
-
-    return &result;
-}
-
-int *
-open_1_svc(char **argp, struct svc_req *rqstp)
-{
-    static int  result;
-
-    /*
-     * insert server code here
-     */
-
-    return &result;
-}
-
-int *
-close_1_svc(char **argp, struct svc_req *rqstp)
-{
-    static int  result;
-
-    /*
-     * insert server code here
-     */
-
-    return &result;
-}
-
-chunk *
-read_1_svc(request *argp, struct svc_req *rqstp)
-{
-    static chunk  result;
-
-    /*
-     * insert server code here
-     */
-
-    return &result;
-}
-
-int *
-write_1_svc(chunk *argp, struct svc_req *rqstp)
-{
-    static int  result;
-
-    /*
-     * insert server code here
-     */
-
-    return &result;
-}
-
-int *
-opendir_1_svc(opendir_args *argp, struct svc_req *rqstp)
-{
-    static int  result;
-    DIR *dir = opendir(argp->dirname);
-
-    if (dir != NULL) {
-        result = 0;
-        closedir(dir);
+    FILE *file = fopen(*argp, "w");
+    if (file != NULL) {
+        fclose(file);
+        result = 0;  // return 0 if the file was successfully created
     } else {
-        result = -1;
+        result = -1;  // return -1 if the file could not be created
+    }
+    return &result;
+}
+
+
+int * delete_1_svc(char **argp, struct svc_req *rqstp){
+    static int  result;
+
+    if (remove(*argp) == 0) {
+        result = 0;  // return 0 if the file was successfully deleted
+    } else {
+        result = -1;  // return -1 if the file could not be deleted
     }
 
     return &result;
 }
 
-readdir_result *
-readdir_1_svc(readdir_args *argp, struct svc_req *rqstp)
-{
-    static readdir_result  result;
-    DIR *dir;
-    struct dirent *entry;
+chunk *retrieve_file_1_svc(request *argp, struct svc_req *rqstp){
+    static chunk  result;
+    FILE *file = fopen(argp->numeFisier, "r");
+    if (file != NULL) {
+        fseek(file, 0, SEEK_END);
+        long length = ftell(file);
+        fseek(file, 0, SEEK_SET);
+        result.data.data_val = malloc(length);
+        if (result.data.data_val) {
+            fread(result.data.data_val, 1, length, file);
+            result.data.data_len = length;
+            result.fisier = strdup(argp->numeFisier);
+            result.dim = length;
+            result.destOffset = 0;  // set this to the desired value
+        }
+        fclose(file);
+    } else {
+        result.data.data_val = NULL;  // return NULL if the file could not be read
+        result.data.data_len = 0;
+        result.fisier = NULL;
+        result.dim = 0;
+        result.destOffset = 0;
+    }
 
-    dir = opendir(argp->dirname);
-    if (dir == NULL) {
-        result.more = false;
+    return &result;
+}
+
+
+int *send_file_1_svc(chunk *argp, struct svc_req *rqstp) {
+    static int result;
+
+    FILE *file = fopen(argp->fisier, "r+");
+    if (file == NULL) {
+        result = -1; // error opening file
         return &result;
     }
 
-    result.filenames[0] = '\0';
+    fseek(file, argp->destOffset, SEEK_SET);
+    size_t written = fwrite(argp->data.data_val, 1, argp->dim, file);
+    fclose(file);
+
+    if (written != argp->dim) {
+        result = -2; // error writing to file
+        return &result;
+    }
+
+    result = 0; // success
+    return &result;
+}
+
+
+int *mkdir_1_svc(char **argp, struct svc_req *rqstp){
+    static int result;
+    const char *dirname = *argp;
+
+    result = mkdir(dirname, 0777); // 0777 read, write, execute for all
+
+    if (result == -1) {
+        result = errno; // return error code
+    } else {
+        result = 0; // success
+    }
+
+    return &result;
+}
+
+
+int *open_1_svc(char **argp, struct svc_req *rqstp){
+    static int result;
+    const char *filename = *argp;
+
+    int fd = open(filename, O_RDONLY); // open file for reading only
+
+    if (fd == -1) {
+        result = errno; // return error code
+    } else {
+        result = fd; // return file descriptor
+    }
+
+    return &result;
+}
+
+
+int *close_1_svc(char **argp, struct svc_req *rqstp){
+    static int result;
+    int fd = atoi(*argp); // convert string to int
+
+    result = close(fd);
+
+    if (result == -1) {
+        result = errno; // return error code
+    } else {
+        result = 0; // success
+    }
+
+    return &result;
+}
+
+
+chunk *read_1_svc(request *argp, int dim, struct svc_req *rqstp){
+    static chunk result;
+    int fd = open(argp->numeFisier, O_RDONLY); // open file for reading only
+
+    if (fd == -1) {
+        return NULL; //error opening file
+    }
+
+    lseek(fd, argp->startOffset, SEEK_SET); // move cursor to specified offset
+
+    result.data.data_val = malloc(dim);
+    if (result.data.data_val == NULL) {
+        close(fd);
+        return NULL; // error allocating memory
+    }
+
+    result.data.data_len = read(fd, result.data.data_val, dim);
+    if (result.data.data_len == -1) {
+        free(result.data.data_val);
+        close(fd);
+        return NULL; // error reading from file
+    }
+
+    close(fd);
+    return &result;
+}
+
+
+
+int *write_1_svc(chunk *argp, struct svc_req *rqstp){
+    static int result;
+    int fd = open(argp->fisier, O_WRONLY); // open file for writing only
+
+    if (fd == -1) {
+        result = errno; // returning error code
+        return &result;
+    }
+
+    lseek(fd, argp->destOffset, SEEK_SET); // move cursor to specified offset
+
+    ssize_t written = write(fd, argp->data.data_val, argp->dim);
+    if (written == -1) {
+        result = errno; // return error code
+    } else {
+        result = 0; // success
+    }
+
+    close(fd);
+    return &result;
+}
+
+
+int *opendir_1_svc(opendir_args *argp, struct svc_req *rqstp){
+    static int opendir_result;
+    DIR *dir = opendir(argp->dirname);
+
+    if (dir != NULL) {
+        opendir_result = 0; // success
+        closedir(dir);
+    } else {
+        opendir_result = -1; // error
+    }
+
+    return &opendir_result;
+}
+
+
+readdir_result *readdir_1_svc(readdir_args *argp, struct svc_req *rqstp){
+    static readdir_result readdir_result;
+    DIR *dir;
+    struct dirent *entry;
+    char *temp;
+    int len;
+
+    dir = opendir(argp->dirname);
+    if (dir == NULL) {
+        readdir_result.more = false;
+        return &readdir_result;
+    }
+
+    // buffer initialization
+    readdir_result.filenames = malloc(1);
+    readdir_result.filenames[0] = '\0';
+
     while ((entry = readdir(dir)) != NULL) {
-        strcat(result.filenames, entry->d_name);
-        strcat(result.filenames, "\n");
+        len = strlen(readdir_result.filenames) + strlen(entry->d_name) + 2;
+        temp = realloc(readdir_result.filenames, len);
+        if (temp == NULL) {
+            // error allocating memory
+            free(readdir_result.filenames);
+            closedir(dir);
+            readdir_result.more = false;
+            return &readdir_result;
+        }
+        readdir_result.filenames = temp;
+        strcat(readdir_result.filenames, entry->d_name);
+        strcat(readdir_result.filenames, "\n");
     }
 
     closedir(dir);
-    result.more = false;
+    readdir_result.more = false;
 
-    return &result;
+    return &readdir_result;
 }

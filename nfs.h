@@ -7,6 +7,7 @@
 #define _NFS_H_RPCGEN
 
 #include <rpc/rpc.h>
+#include <stdbool.h>
 
 
 #ifdef __cplusplus
@@ -15,23 +16,41 @@ extern "C" {
 
 #define LUNGIME_FILENAME 150
 #define LUNGIME_FILEDATA 1024
+#define LUNGIME_DIRNAME 256
+#define MAX_FILENAMES_LENGTH 1280
 
-struct cerere {
-	char *numeFisier;
-	int startOffset;
+struct request {
+    char *numeFisier;
+    int startOffset;
 };
-typedef struct cerere cerere;
+typedef struct request request;
 
 struct chunk {
-	char *fisier;
-	struct {
-		u_int data_len;
-		char *data_val;
-	} data;
-	int dim;
-	int destOffset;
+    char *fisier;
+    struct {
+        u_int data_len;
+        char *data_val;
+    } data;
+    int dim;
+    int destOffset;
 };
 typedef struct chunk chunk;
+
+struct opendir_args {
+    char *dirname;
+};
+typedef struct opendir_args opendir_args;
+
+struct readdir_args {
+    char *dirname;
+};
+typedef struct readdir_args readdir_args;
+
+struct readdir_result {
+    char *filenames;
+    bool more;
+};
+typedef struct readdir_result readdir_result;
 
 #define MYNFS_RPC 0x21000001
 #define MYNFS_VERSION_1 1
@@ -68,11 +87,11 @@ extern  int * mynfs_rmdir_1_svc(char **, struct svc_req *);
 extern  int * mynfs_opendir_1(char **, CLIENT *);
 extern  int * mynfs_opendir_1_svc(char **, struct svc_req *);
 #define MYNFS_READDIR 11
-extern  int * mynfs_readdir_1(int *, CLIENT *);
-extern  int * mynfs_readdir_1_svc(int *, struct svc_req *);
+extern  readdir_result * mynfs_readdir_1(readdir_args *, CLIENT *);
+extern  readdir_result * mynfs_readdir_1_svc(readdir_args *, struct svc_req *);
 #define MYNFS_GETCHUNK 12
-extern  chunk * mynfs_getchunk_1(cerere *, CLIENT *);
-extern  chunk * mynfs_getchunk_1_svc(cerere *, struct svc_req *);
+extern  chunk * mynfs_getchunk_1(request *, CLIENT *);
+extern  chunk * mynfs_getchunk_1_svc(request *, struct svc_req *);
 extern int mynfs_rpc_1_freeresult (SVCXPRT *, xdrproc_t, caddr_t);
 
 #else /* K&R C */
@@ -118,12 +137,18 @@ extern int mynfs_rpc_1_freeresult ();
 /* the xdr functions */
 
 #if defined(__STDC__) || defined(__cplusplus)
-extern  bool_t xdr_cerere (XDR *, cerere*);
+extern  bool_t xdr_request (XDR *, request*);
 extern  bool_t xdr_chunk (XDR *, chunk*);
+extern  bool_t xdr_opendir_args (XDR *, opendir_args*);
+extern  bool_t xdr_readdir_args (XDR *, readdir_args*);
+extern  bool_t xdr_readdir_result (XDR *, readdir_result*);
 
 #else /* K&R C */
-extern bool_t xdr_cerere ();
+extern bool_t xdr_request ();
 extern bool_t xdr_chunk ();
+extern bool_t xdr_opendir_args ();
+extern bool_t xdr_readdir_args ();
+extern bool_t xdr_readdir_result ();
 
 #endif /* K&R C */
 
@@ -132,3 +157,4 @@ extern bool_t xdr_chunk ();
 #endif
 
 #endif /* !_NFS_H_RPCGEN */
+
