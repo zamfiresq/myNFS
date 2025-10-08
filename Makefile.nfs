@@ -10,8 +10,14 @@ OBJECTS_CLNT = $(SOURCES_CLNT:.c=.o)
 OBJECTS_SVC = $(SOURCES_SVC:.c=.o)
 
 # Compiler and Linker Flags
-CFLAGS = -I/usr/include/tirpc -fsanitize=address
-LDFLAGS = -ltirpc -fsanitize=address
+UNAME_S := $(shell uname -s)
+ifeq ($(UNAME_S),Darwin)
+  CFLAGS = -fsanitize=address
+  LDFLAGS = -fsanitize=address
+else
+  CFLAGS = -I/usr/include/tirpc -fsanitize=address
+  LDFLAGS = -ltirpc -fsanitize=address
+endif
 
 # Targets
 all: $(CLIENT) $(SERVER)

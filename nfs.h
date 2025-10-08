@@ -6,12 +6,9 @@
 #ifndef _NFS_H_RPCGEN
 #define _NFS_H_RPCGEN
 
+#define RPCGEN_VERSION	199506
+
 #include <rpc/rpc.h>
-
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 #define FILENAME_LENGTH 128
 #define DATA_LENGTH 1024
@@ -21,9 +18,19 @@ extern "C" {
 
 struct request {
 	char *filename;
-	int start;
+	int size;
+	int src_offset;
+	int dest_offset;
 };
 typedef struct request request;
+#ifdef __cplusplus
+extern "C" bool_t xdr_request(XDR *, request*);
+#elif __STDC__
+extern  bool_t xdr_request(XDR *, request*);
+#else /* Old Style C */
+bool_t xdr_request();
+#endif /* Old Style C */
+
 
 struct chunk {
 	char *filename;
@@ -35,129 +42,180 @@ struct chunk {
 	int dest_offset;
 };
 typedef struct chunk chunk;
+#ifdef __cplusplus
+extern "C" bool_t xdr_chunk(XDR *, chunk*);
+#elif __STDC__
+extern  bool_t xdr_chunk(XDR *, chunk*);
+#else /* Old Style C */
+bool_t xdr_chunk();
+#endif /* Old Style C */
+
+
+#ifdef __cplusplus
+extern "C" bool_t xdr_chunk(XDR *, chunk*);
+#elif __STDC__
+extern  bool_t xdr_chunk(XDR *, chunk*);
+#else /* Old Style C */
+bool_t xdr_chunk();
+#endif /* Old Style C */
 
 
 struct opendir_args {
 	char *dirname;
 };
 typedef struct opendir_args opendir_args;
+#ifdef __cplusplus
+extern "C" bool_t xdr_opendir_args(XDR *, opendir_args*);
+#elif __STDC__
+extern  bool_t xdr_opendir_args(XDR *, opendir_args*);
+#else /* Old Style C */
+bool_t xdr_opendir_args();
+#endif /* Old Style C */
+
 
 struct readdir_args {
 	char *dirname;
 };
 typedef struct readdir_args readdir_args;
+#ifdef __cplusplus
+extern "C" bool_t xdr_readdir_args(XDR *, readdir_args*);
+#elif __STDC__
+extern  bool_t xdr_readdir_args(XDR *, readdir_args*);
+#else /* Old Style C */
+bool_t xdr_readdir_args();
+#endif /* Old Style C */
+
 
 struct readdir_result {
 	char *filenames;
 	bool_t more;
-	int size;
 };
 typedef struct readdir_result readdir_result;
+#ifdef __cplusplus
+extern "C" bool_t xdr_readdir_result(XDR *, readdir_result*);
+#elif __STDC__
+extern  bool_t xdr_readdir_result(XDR *, readdir_result*);
+#else /* Old Style C */
+bool_t xdr_readdir_result();
+#endif /* Old Style C */
 
-#define NFS_PROGRAM 0x21000001
-#define NFS_VERSION_1 1
 
-#if defined(__STDC__) || defined(__cplusplus)
-#define ls 1
-extern  char ** ls_1(char **, CLIENT *);
-extern  char ** ls_1_svc(char **, struct svc_req *);
-#define create 2
-extern  int * create_1(char **, CLIENT *);
-extern  int * create_1_svc(char **, struct svc_req *);
-#define delete 3
-extern  int * delete_1(char **, CLIENT *);
-extern  int * delete_1_svc(char **, struct svc_req *);
-#define retrieve_file 4
-extern  chunk * retrieve_file_1(request *, CLIENT *);
-extern  chunk * retrieve_file_1_svc(request *, struct svc_req *);
-#define send_file 5
-extern  int * send_file_1(chunk *, CLIENT *);
-extern  int * send_file_1_svc(chunk *, struct svc_req *);
-#define mynfs_mkdir 6
-extern  int * mynfs_mkdir_1(char **, CLIENT *);
-extern  int * mynfs_mkdir_1_svc(char **, struct svc_req *);
-#define mynfs_open 7
-extern  int * mynfs_open_1(char **, CLIENT *);
-extern  int * mynfs_open_1_svc(char **, struct svc_req *);
-#define mynfs_close 8
-extern  int * mynfs_close_1(char **, CLIENT *);
-extern  int * mynfs_close_1_svc(char **, struct svc_req *);
-#define mynfs_read 9
-extern  chunk * mynfs_read_1(request *, CLIENT *);
-extern  chunk * mynfs_read_1_svc(request *, struct svc_req *);
-#define mynfs_write 10
-extern  int * mynfs_write_1(chunk *, CLIENT *);
-extern  int * mynfs_write_1_svc(chunk *, struct svc_req *);
-#define mynfs_opendir 11
-extern  int * mynfs_opendir_1(opendir_args *, CLIENT *);
-extern  int * mynfs_opendir_1_svc(opendir_args *, struct svc_req *);
-#define mynfs_readdir 12
-extern  readdir_result * mynfs_readdir_1(readdir_args *, CLIENT *);
-extern  readdir_result * mynfs_readdir_1_svc(readdir_args *, struct svc_req *);
-extern int nfs_program_1_freeresult (SVCXPRT *, xdrproc_t, caddr_t);
-
-#else /* K&R C */
-#define ls 1
-extern  char ** ls_1();
-extern  char ** ls_1_svc();
-#define create 2
-extern  int * create_1();
-extern  int * create_1_svc();
-#define delete 3
-extern  int * delete_1();
-extern  int * delete_1_svc();
-#define retrieve_file 4
-extern  chunk * retrieve_file_1();
-extern  chunk * retrieve_file_1_svc();
-#define send_file 5
-extern  int * send_file_1();
-extern  int * send_file_1_svc();
-#define mynfs_mkdir 6
-extern  int * mynfs_mkdir_1();
-extern  int * mynfs_mkdir_1_svc();
-#define mynfs_open 7
-extern  int * mynfs_open_1();
-extern  int * mynfs_open_1_svc();
-#define mynfs_close 8
-extern  int * mynfs_close_1();
-extern  int * mynfs_close_1_svc();
-#define mynfs_read 9
-extern  chunk * mynfs_read_1();
-extern  chunk * mynfs_read_1_svc();
-#define mynfs_write 10
-extern  int * mynfs_write_1();
-extern  int * mynfs_write_1_svc();
-#define mynfs_opendir 11
-extern  int * mynfs_opendir_1();
-extern  int * mynfs_opendir_1_svc();
-#define mynfs_readdir 12
-extern  readdir_result * mynfs_readdir_1();
-extern  readdir_result * mynfs_readdir_1_svc();
-extern int nfs_program_1_freeresult ();
-#endif /* K&R C */
-
-/* the xdr functions */
-
-#if defined(__STDC__) || defined(__cplusplus)
-extern  bool_t xdr_request (XDR *, request*);
-extern  bool_t xdr_chunk (XDR *, chunk*);
-extern  bool_t xdr_chunk (XDR *, chunk*);
-extern  bool_t xdr_opendir_args (XDR *, opendir_args*);
-extern  bool_t xdr_readdir_args (XDR *, readdir_args*);
-extern  bool_t xdr_readdir_result (XDR *, readdir_result*);
-
-#else /* K&R C */
-extern bool_t xdr_request ();
-extern bool_t xdr_chunk ();
-extern bool_t xdr_chunk ();
-extern bool_t xdr_opendir_args ();
-extern bool_t xdr_readdir_args ();
-extern bool_t xdr_readdir_result ();
-
-#endif /* K&R C */
+#define NFS_PROGRAM ((rpc_uint)0x21000001)
+#define NFS_VERSION_1 ((rpc_uint)1)
 
 #ifdef __cplusplus
-}
-#endif
+#define ls ((rpc_uint)1)
+extern "C" char ** ls_1(char **, CLIENT *);
+extern "C" char ** ls_1_svc(char **, struct svc_req *);
+#define create ((rpc_uint)2)
+extern "C" int * create_1(char **, CLIENT *);
+extern "C" int * create_1_svc(char **, struct svc_req *);
+#define delete ((rpc_uint)3)
+extern "C" int * delete_1(char **, CLIENT *);
+extern "C" int * delete_1_svc(char **, struct svc_req *);
+#define retrieve_file ((rpc_uint)4)
+extern "C" chunk * retrieve_file_1(request *, CLIENT *);
+extern "C" chunk * retrieve_file_1_svc(request *, struct svc_req *);
+#define send_file ((rpc_uint)5)
+extern "C" int * send_file_1(chunk *, CLIENT *);
+extern "C" int * send_file_1_svc(chunk *, struct svc_req *);
+#define mynfs_mkdir ((rpc_uint)6)
+extern "C" int * mynfs_mkdir_1(char **, CLIENT *);
+extern "C" int * mynfs_mkdir_1_svc(char **, struct svc_req *);
+#define mynfs_open ((rpc_uint)7)
+extern "C" int * mynfs_open_1(char **, CLIENT *);
+extern "C" int * mynfs_open_1_svc(char **, struct svc_req *);
+#define mynfs_close ((rpc_uint)8)
+extern "C" int * mynfs_close_1(char **, CLIENT *);
+extern "C" int * mynfs_close_1_svc(char **, struct svc_req *);
+#define mynfs_read ((rpc_uint)9)
+extern "C" chunk * mynfs_read_1(request *, CLIENT *);
+extern "C" chunk * mynfs_read_1_svc(request *, struct svc_req *);
+#define mynfs_write ((rpc_uint)10)
+extern "C" int * mynfs_write_1(chunk *, CLIENT *);
+extern "C" int * mynfs_write_1_svc(chunk *, struct svc_req *);
+#define mynfs_opendir ((rpc_uint)11)
+extern "C" int * mynfs_opendir_1(opendir_args *, CLIENT *);
+extern "C" int * mynfs_opendir_1_svc(opendir_args *, struct svc_req *);
+#define mynfs_readdir ((rpc_uint)12)
+extern "C" readdir_result * mynfs_readdir_1(readdir_args *, CLIENT *);
+extern "C" readdir_result * mynfs_readdir_1_svc(readdir_args *, struct svc_req *);
+
+#elif __STDC__
+#define ls ((rpc_uint)1)
+extern  char ** ls_1(char **, CLIENT *);
+extern  char ** ls_1_svc(char **, struct svc_req *);
+#define create ((rpc_uint)2)
+extern  int * create_1(char **, CLIENT *);
+extern  int * create_1_svc(char **, struct svc_req *);
+#define delete ((rpc_uint)3)
+extern  int * delete_1(char **, CLIENT *);
+extern  int * delete_1_svc(char **, struct svc_req *);
+#define retrieve_file ((rpc_uint)4)
+extern  chunk * retrieve_file_1(request *, CLIENT *);
+extern  chunk * retrieve_file_1_svc(request *, struct svc_req *);
+#define send_file ((rpc_uint)5)
+extern  int * send_file_1(chunk *, CLIENT *);
+extern  int * send_file_1_svc(chunk *, struct svc_req *);
+#define mynfs_mkdir ((rpc_uint)6)
+extern  int * mynfs_mkdir_1(char **, CLIENT *);
+extern  int * mynfs_mkdir_1_svc(char **, struct svc_req *);
+#define mynfs_open ((rpc_uint)7)
+extern  int * mynfs_open_1(char **, CLIENT *);
+extern  int * mynfs_open_1_svc(char **, struct svc_req *);
+#define mynfs_close ((rpc_uint)8)
+extern  int * mynfs_close_1(char **, CLIENT *);
+extern  int * mynfs_close_1_svc(char **, struct svc_req *);
+#define mynfs_read ((rpc_uint)9)
+extern  chunk * mynfs_read_1(request *, CLIENT *);
+extern  chunk * mynfs_read_1_svc(request *, struct svc_req *);
+#define mynfs_write ((rpc_uint)10)
+extern  int * mynfs_write_1(chunk *, CLIENT *);
+extern  int * mynfs_write_1_svc(chunk *, struct svc_req *);
+#define mynfs_opendir ((rpc_uint)11)
+extern  int * mynfs_opendir_1(opendir_args *, CLIENT *);
+extern  int * mynfs_opendir_1_svc(opendir_args *, struct svc_req *);
+#define mynfs_readdir ((rpc_uint)12)
+extern  readdir_result * mynfs_readdir_1(readdir_args *, CLIENT *);
+extern  readdir_result * mynfs_readdir_1_svc(readdir_args *, struct svc_req *);
+
+#else /* Old Style C */
+#define ls ((rpc_uint)1)
+extern  char ** ls_1();
+extern  char ** ls_1_svc();
+#define create ((rpc_uint)2)
+extern  int * create_1();
+extern  int * create_1_svc();
+#define delete ((rpc_uint)3)
+extern  int * delete_1();
+extern  int * delete_1_svc();
+#define retrieve_file ((rpc_uint)4)
+extern  chunk * retrieve_file_1();
+extern  chunk * retrieve_file_1_svc();
+#define send_file ((rpc_uint)5)
+extern  int * send_file_1();
+extern  int * send_file_1_svc();
+#define mynfs_mkdir ((rpc_uint)6)
+extern  int * mynfs_mkdir_1();
+extern  int * mynfs_mkdir_1_svc();
+#define mynfs_open ((rpc_uint)7)
+extern  int * mynfs_open_1();
+extern  int * mynfs_open_1_svc();
+#define mynfs_close ((rpc_uint)8)
+extern  int * mynfs_close_1();
+extern  int * mynfs_close_1_svc();
+#define mynfs_read ((rpc_uint)9)
+extern  chunk * mynfs_read_1();
+extern  chunk * mynfs_read_1_svc();
+#define mynfs_write ((rpc_uint)10)
+extern  int * mynfs_write_1();
+extern  int * mynfs_write_1_svc();
+#define mynfs_opendir ((rpc_uint)11)
+extern  int * mynfs_opendir_1();
+extern  int * mynfs_opendir_1_svc();
+#define mynfs_readdir ((rpc_uint)12)
+extern  readdir_result * mynfs_readdir_1();
+extern  readdir_result * mynfs_readdir_1_svc();
+#endif /* Old Style C */
 
 #endif /* !_NFS_H_RPCGEN */

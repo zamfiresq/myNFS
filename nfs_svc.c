@@ -4,20 +4,78 @@
  */
 
 #include "nfs.h"
+#include <sys/ioctl.h>
+#include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include <rpc/pmap_clnt.h>
 #include <string.h>
+#include <netdb.h>
+#include <signal.h>
+#include <sys/ttycom.h>
+#ifdef __cplusplus
+#include <sysent.h>
+#endif /* __cplusplus */
 #include <memory.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <syslog.h>
 
-#ifndef SIG_PF
+#ifdef __STDC__
 #define SIG_PF void(*)(int)
 #endif
 
+#ifdef DEBUG
+#define RPC_SVC_FG
+#endif
+
+#define _RPCSVC_CLOSEDOWN 120
+static int _rpcpmstart;		/* Started by a port monitor ? */
+static int _rpcfdtype;		/* Whether Stream or Datagram ? */
+static int _rpcsvcdirty;	/* Still serving ? */
+
+static
+void _msgout(char* msg)
+{
+#ifdef RPC_SVC_FG
+	if (_rpcpmstart)
+		syslog(LOG_ERR, "%s", msg);
+	else
+		(void) fprintf(stderr, "%s\n", msg);
+#else
+	syslog(LOG_ERR, "%s", msg);
+#endif
+}
+
+static void closedown(void);
+
 static void
-nfs_program_1(struct svc_req *rqstp, register SVCXPRT *transp)
+closedown()
+{
+	if (_rpcsvcdirty == 0) {
+		extern fd_set svc_fdset;
+		static int size;
+		int i, openfd;
+
+		if (_rpcfdtype == SOCK_DGRAM)
+			exit(0);
+		if (size == 0) {
+			size = getdtablesize();
+		}
+		for (i = 0, openfd = 0; i < size && openfd < 2; i++)
+			if (FD_ISSET(i, &svc_fdset))
+				openfd++;
+		if (openfd <= (_rpcpmstart?0:1))
+			exit(0);
+	}
+	(void) alarm(_RPCSVC_CLOSEDOWN);
+}
+
+static void nfs_program_1(struct svc_req *rqstp, SVCXPRT *transp);
+
+static void
+nfs_program_1(struct svc_req *rqstp, SVCXPRT *transp)
 {
 	union {
 		char *ls_1_arg;
@@ -34,135 +92,205 @@ nfs_program_1(struct svc_req *rqstp, register SVCXPRT *transp)
 		readdir_args mynfs_readdir_1_arg;
 	} argument;
 	char *result;
-	xdrproc_t _xdr_argument, _xdr_result;
+	xdrproc_t xdr_argument, xdr_result;
 	char *(*local)(char *, struct svc_req *);
 
+	_rpcsvcdirty = 1;
 	switch (rqstp->rq_proc) {
 	case NULLPROC:
-		(void) svc_sendreply (transp, (xdrproc_t) xdr_void, (char *)NULL);
+		(void) svc_sendreply(transp, (xdrproc_t) xdr_void, (char *)NULL);
+		_rpcsvcdirty = 0;
 		return;
 
 	case ls:
-		_xdr_argument = (xdrproc_t) xdr_wrapstring;
-		_xdr_result = (xdrproc_t) xdr_wrapstring;
+		xdr_argument = (xdrproc_t) xdr_wrapstring;
+		xdr_result = (xdrproc_t) xdr_wrapstring;
 		local = (char *(*)(char *, struct svc_req *)) ls_1_svc;
 		break;
 
 	case create:
-		_xdr_argument = (xdrproc_t) xdr_wrapstring;
-		_xdr_result = (xdrproc_t) xdr_int;
+		xdr_argument = (xdrproc_t) xdr_wrapstring;
+		xdr_result = (xdrproc_t) xdr_int;
 		local = (char *(*)(char *, struct svc_req *)) create_1_svc;
 		break;
 
 	case delete:
-		_xdr_argument = (xdrproc_t) xdr_wrapstring;
-		_xdr_result = (xdrproc_t) xdr_int;
+		xdr_argument = (xdrproc_t) xdr_wrapstring;
+		xdr_result = (xdrproc_t) xdr_int;
 		local = (char *(*)(char *, struct svc_req *)) delete_1_svc;
 		break;
 
 	case retrieve_file:
-		_xdr_argument = (xdrproc_t) xdr_request;
-		_xdr_result = (xdrproc_t) xdr_chunk;
+		xdr_argument = (xdrproc_t) xdr_request;
+		xdr_result = (xdrproc_t) xdr_chunk;
 		local = (char *(*)(char *, struct svc_req *)) retrieve_file_1_svc;
 		break;
 
 	case send_file:
-		_xdr_argument = (xdrproc_t) xdr_chunk;
-		_xdr_result = (xdrproc_t) xdr_int;
+		xdr_argument = (xdrproc_t) xdr_chunk;
+		xdr_result = (xdrproc_t) xdr_int;
 		local = (char *(*)(char *, struct svc_req *)) send_file_1_svc;
 		break;
 
 	case mynfs_mkdir:
-		_xdr_argument = (xdrproc_t) xdr_wrapstring;
-		_xdr_result = (xdrproc_t) xdr_int;
+		xdr_argument = (xdrproc_t) xdr_wrapstring;
+		xdr_result = (xdrproc_t) xdr_int;
 		local = (char *(*)(char *, struct svc_req *)) mynfs_mkdir_1_svc;
 		break;
 
 	case mynfs_open:
-		_xdr_argument = (xdrproc_t) xdr_wrapstring;
-		_xdr_result = (xdrproc_t) xdr_int;
+		xdr_argument = (xdrproc_t) xdr_wrapstring;
+		xdr_result = (xdrproc_t) xdr_int;
 		local = (char *(*)(char *, struct svc_req *)) mynfs_open_1_svc;
 		break;
 
 	case mynfs_close:
-		_xdr_argument = (xdrproc_t) xdr_wrapstring;
-		_xdr_result = (xdrproc_t) xdr_int;
+		xdr_argument = (xdrproc_t) xdr_wrapstring;
+		xdr_result = (xdrproc_t) xdr_int;
 		local = (char *(*)(char *, struct svc_req *)) mynfs_close_1_svc;
 		break;
 
 	case mynfs_read:
-		_xdr_argument = (xdrproc_t) xdr_request;
-		_xdr_result = (xdrproc_t) xdr_chunk;
+		xdr_argument = (xdrproc_t) xdr_request;
+		xdr_result = (xdrproc_t) xdr_chunk;
 		local = (char *(*)(char *, struct svc_req *)) mynfs_read_1_svc;
 		break;
 
 	case mynfs_write:
-		_xdr_argument = (xdrproc_t) xdr_chunk;
-		_xdr_result = (xdrproc_t) xdr_int;
+		xdr_argument = (xdrproc_t) xdr_chunk;
+		xdr_result = (xdrproc_t) xdr_int;
 		local = (char *(*)(char *, struct svc_req *)) mynfs_write_1_svc;
 		break;
 
 	case mynfs_opendir:
-		_xdr_argument = (xdrproc_t) xdr_opendir_args;
-		_xdr_result = (xdrproc_t) xdr_int;
+		xdr_argument = (xdrproc_t) xdr_opendir_args;
+		xdr_result = (xdrproc_t) xdr_int;
 		local = (char *(*)(char *, struct svc_req *)) mynfs_opendir_1_svc;
 		break;
 
 	case mynfs_readdir:
-		_xdr_argument = (xdrproc_t) xdr_readdir_args;
-		_xdr_result = (xdrproc_t) xdr_readdir_result;
+		xdr_argument = (xdrproc_t) xdr_readdir_args;
+		xdr_result = (xdrproc_t) xdr_readdir_result;
 		local = (char *(*)(char *, struct svc_req *)) mynfs_readdir_1_svc;
 		break;
 
 	default:
-		svcerr_noproc (transp);
+		svcerr_noproc(transp);
+		_rpcsvcdirty = 0;
 		return;
 	}
-	memset ((char *)&argument, 0, sizeof (argument));
-	if (!svc_getargs (transp, (xdrproc_t) _xdr_argument, (caddr_t) &argument)) {
-		svcerr_decode (transp);
+	(void) memset((char *)&argument, 0, sizeof (argument));
+	if (!svc_getargs(transp, xdr_argument, (caddr_t) &argument)) {
+		svcerr_decode(transp);
+		_rpcsvcdirty = 0;
 		return;
 	}
 	result = (*local)((char *)&argument, rqstp);
-	if (result != NULL && !svc_sendreply(transp, (xdrproc_t) _xdr_result, result)) {
-		svcerr_systemerr (transp);
+	if (result != NULL && !svc_sendreply(transp, (xdrproc_t) xdr_result, result)) {
+		svcerr_systemerr(transp);
 	}
-	if (!svc_freeargs (transp, (xdrproc_t) _xdr_argument, (caddr_t) &argument)) {
-		fprintf (stderr, "%s", "unable to free arguments");
-		exit (1);
+	if (!svc_freeargs(transp, xdr_argument, (caddr_t) &argument)) {
+		_msgout("unable to free arguments");
+		exit(1);
 	}
+	_rpcsvcdirty = 0;
 	return;
 }
 
-// int
-// main (int argc, char **argv)
-// {
-// 	register SVCXPRT *transp;
 
-// 	pmap_unset (NFS_PROGRAM, NFS_VERSION_1);
+int main( int argc, char* argv[] );
 
-// 	transp = svcudp_create(RPC_ANYSOCK);
-// 	if (transp == NULL) {
-// 		fprintf (stderr, "%s", "cannot create udp service.");
-// 		exit(1);
-// 	}
-// 	if (!svc_register(transp, NFS_PROGRAM, NFS_VERSION_1, nfs_program_1, IPPROTO_UDP)) {
-// 		fprintf (stderr, "%s", "unable to register (NFS_PROGRAM, NFS_VERSION_1, udp).");
-// 		exit(1);
-// 	}
+int
+main( int argc, char* argv[] )
+{
+	SVCXPRT *transp = NULL;
+	int sock;
+	int proto = 0;
+	struct sockaddr_in saddr;
+	int asize = sizeof (saddr);
 
-// 	transp = svctcp_create(RPC_ANYSOCK, 0, 0);
-// 	if (transp == NULL) {
-// 		fprintf (stderr, "%s", "cannot create tcp service.");
-// 		exit(1);
-// 	}
-// 	if (!svc_register(transp, NFS_PROGRAM, NFS_VERSION_1, nfs_program_1, IPPROTO_TCP)) {
-// 		fprintf (stderr, "%s", "unable to register (NFS_PROGRAM, NFS_VERSION_1, tcp).");
-// 		exit(1);
-// 	}
+	if (getsockname(0, (struct sockaddr *)&saddr, &asize) == 0) {
+		int ssize = sizeof (int);
 
-// 	svc_run ();
-// 	fprintf (stderr, "%s", "svc_run returned");
-// 	exit (1);
-// 	/* NOTREACHED */
-// }
+		if (saddr.sin_family != AF_INET)
+			exit(1);
+		if (getsockopt(0, SOL_SOCKET, SO_TYPE,
+				(char *)&_rpcfdtype, &ssize) == -1)
+			exit(1);
+		sock = 0;
+		_rpcpmstart = 1;
+		proto = 0;
+		openlog("nfs", LOG_PID, LOG_DAEMON);
+	} else {
+#ifndef RPC_SVC_FG
+		int size;
+		int pid, i;
+
+		pid = fork();
+		if (pid < 0) {
+			perror("cannot fork");
+			exit(1);
+		}
+		if (pid)
+			exit(0);
+		size = getdtablesize();
+		for (i = 0; i < size; i++)
+			(void) close(i);
+		i = open("/dev/console", 2);
+		(void) dup2(i, 1);
+		(void) dup2(i, 2);
+		i = open("/dev/tty", 2);
+		if (i >= 0) {
+			(void) ioctl(i, TIOCNOTTY, (char *)NULL);
+			(void) close(i);
+		}
+		openlog("nfs", LOG_PID, LOG_DAEMON);
+#endif
+		sock = RPC_ANYSOCK;
+		(void) pmap_unset(NFS_PROGRAM, NFS_VERSION_1);
+	}
+
+	if ((_rpcfdtype == 0) || (_rpcfdtype == SOCK_DGRAM)) {
+		transp = svcudp_create(sock);
+		if (transp == NULL) {
+			_msgout("cannot create udp service.");
+			exit(1);
+		}
+		if (!_rpcpmstart)
+			proto = IPPROTO_UDP;
+		if (!svc_register(transp, NFS_PROGRAM, NFS_VERSION_1, nfs_program_1, proto)) {
+			_msgout("unable to register (NFS_PROGRAM, NFS_VERSION_1, udp).");
+			exit(1);
+		}
+	}
+
+	if ((_rpcfdtype == 0) || (_rpcfdtype == SOCK_STREAM)) {
+		if (_rpcpmstart)
+			transp = svcfd_create(sock, 0, 0);
+		else
+			transp = svctcp_create(sock, 0, 0);
+		if (transp == NULL) {
+			_msgout("cannot create tcp service.");
+			exit(1);
+		}
+		if (!_rpcpmstart)
+			proto = IPPROTO_TCP;
+		if (!svc_register(transp, NFS_PROGRAM, NFS_VERSION_1, nfs_program_1, proto)) {
+			_msgout("unable to register (NFS_PROGRAM, NFS_VERSION_1, tcp).");
+			exit(1);
+		}
+	}
+
+	if (transp == (SVCXPRT *)NULL) {
+		_msgout("could not create a handle");
+		exit(1);
+	}
+	if (_rpcpmstart) {
+		(void) signal(SIGALRM, (SIG_PF) closedown);
+		(void) alarm(_RPCSVC_CLOSEDOWN);
+	}
+	svc_run();
+	_msgout("svc_run returned");
+	exit(1);
+	/* NOTREACHED */
+}

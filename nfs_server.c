@@ -12,9 +12,6 @@
 // folder partajat
 #define SHARED_DIR "./shared"
 
-// versiune program RPC
-#define NFS_PROGRAM 0x21000001
-#define NFS_VERSION_1 1
 
 // nr de proceduri
 #define LS_PROC 1
@@ -121,6 +118,8 @@ int *delete_1_svc(char **argp, struct svc_req *req) {
     return &result;
 }
 
+
+// retrieve_file_1
 chunk *retrieve_file_1_svc(request *argp, struct svc_req *req) {
     static chunk result;
 
@@ -134,62 +133,104 @@ chunk *retrieve_file_1_svc(request *argp, struct svc_req *req) {
         return &result;
     }
 
+    char path[PATH_MAX];
+    snprintf(path, sizeof(path), "%s/%s", SHARED_DIR, argp->filename);
+
+    FILE *file = fopen(path, "rb");
+    if (!file) {
+        fprintf(stderr, "retrieve_file_1_svc: Failed to open file %s\n", path);
+        result.filename = strdup(argp->filename);
+        result.data.data_len = 0;
+        result.data.data_val = NULL;
+        result.size = 0;
+        result.dest_offset = 0;
+        return &result;
+    }
+
+    if (fseek(file, argp->src_offset, SEEK_SET) != 0) {
+        fprintf(stderr, "retrieve_file_1_svc: Failed to seek in file %s\n", path);
+        fclose(file);
+        result.filename = strdup(argp->filename);
+        result.data.data_len = 0;
+        result.data.data_val = NULL;
+        result.size = 0;
+        result.dest_offset = 0;
+        return &result;
+    }
+
+    result.data.data_val = malloc(argp->size);
+    if (!result.data.data_val) {
+        fprintf(stderr, "retrieve_file_1_svc: Memory allocation failed\n");
+        fclose(file);
+        result.filename = strdup(argp->filename);
+        result.data.data_len = 0;
+        result.size = 0;
+        result.dest_offset = 0;
+        return &result;
+    }
+
+    size_t read_bytes = fread(result.data.data_val, 1, argp->size, file);
+    fclose(file);
+
     result.filename = strdup(argp->filename);
-    result.data.data_len = 0;
-    result.data.data_val = NULL;
-    result.size = 0;
-    result.dest_offset = 0;
+    result.data.data_len = read_bytes;
+    result.size = read_bytes;
+    result.dest_offset = argp->dest_offset;
 
-    int file_index = -1;
-    for (int i = 0; i < file_count; i++) {
-        if (strcmp(files[i].filename, argp->filename) == 0) {
-            file_index = i;
-            break;
-        }
-    }
-
-    if (file_index != -1) {
-        FILE *file = fopen(files[file_index].filename, "rb");
-        if (file) {
-            fseek(file, argp->src_offset, SEEK_SET);
-            result.size = argp->size;
-            result.dest_offset = argp->dest_offset;
-            result.data.data_len = argp->size;
-            result.data.data_val = malloc(argp->size);
-            fread(result.data.data_val, 1, argp->size, file);
-            fclose(file);
-        } else {
-            fprintf(stderr, "retrieve_file_1_svc: Failed to open file for reading\n");
-        }
-    } else {
-        fprintf(stderr, "retrieve_file_1_svc: File not found\n");
-    }
     return &result;
 }
 
+
+
+// send_file_1
 int *send_file_1_svc(chunk *argp, struct svc_req *req) {
     static int result;
+    char path[PATH_MAX];
 
-    FILE *file = fopen(argp->filename, "wb");
+    if (!argp || !argp->filename || !argp->data.data_val) {
+        fprintf(stderr, "send_file_1_svc: invalid arguments\n");
+        result = -1;
+        return &result;
+    }
+
+    snprintf(path, sizeof(path), "%s/%s", SHARED_DIR, argp->filename);
+
+    FILE *file = fopen(path, "r+b");
+    if (!file) {
+        file = fopen(path, "wb");  // daca nu exista, creeaza
+    }
+
     if (file) {
         fseek(file, argp->dest_offset, SEEK_SET);
         fwrite(argp->data.data_val, 1, argp->size, file);
         fclose(file);
-        result = 0;  // Success
+        printf("send_file_1_svc: wrote %d bytes to %s\n", argp->size, path);
+        result = 0;
     } else {
-        fprintf(stderr, "Error: Failed to open file for writing\n");
-        result = -1;  // Error
+        perror("send_file_1_svc fopen");
+        result = -1;
     }
     return &result;
 }
 
+// mkdir_1
 int *mynfs_mkdir_1_svc(char **argp, struct svc_req *req) {
     static int result;
+    char path[PATH_MAX];
 
-    if (mkdir(*argp, 0777) == 0) {
-        result = 0;  // Success
+    if (argp == NULL || *argp == NULL || **argp == '\0') {
+        fprintf(stderr, "mynfs_mkdir_1_svc: received NULL or empty directory name\n");
+        result = -1;
+        return &result;
+    }
+
+    snprintf(path, sizeof(path), "%s/%s", SHARED_DIR, *argp);
+    if (mkdir(path, 0755) == 0) {
+        printf("mynfs_mkdir_1_svc: created directory %s\n", path);
+        result = 0; // success
     } else {
-        result = -1;  // Error
+        perror("mynfs_mkdir_1_svc mkdir");
+        result = -1; // error
     }
     return &result;
 }
@@ -331,12 +372,32 @@ void nfs_1(struct svc_req *rqstp, register SVCXPRT *transp) {
             svc_freeargs(transp, (xdrproc_t)xdr_wrapstring, (caddr_t)&arg);
             return;
         }
-        case RETRIEVE_FILE_PROC:
-            svc_sendreply(transp, (xdrproc_t)xdr_chunk, retrieve_file_1_svc(NULL, rqstp));
+        case RETRIEVE_FILE_PROC: {
+            request req = {0};
+            if (!svc_getargs(transp, (xdrproc_t)xdr_request, (caddr_t)&req)) {
+                svcerr_decode(transp);
+                return;
+            }
+            chunk *res = retrieve_file_1_svc(&req, rqstp);
+            if (!svc_sendreply(transp, (xdrproc_t)xdr_chunk, (caddr_t)res)) {
+                svcerr_systemerr(transp);
+            }
+            svc_freeargs(transp, (xdrproc_t)xdr_request, (caddr_t)&req);
             return;
-        case SEND_FILE_PROC:
-            svc_sendreply(transp, (xdrproc_t)xdr_int, send_file_1_svc(NULL, rqstp));
+        }
+        case SEND_FILE_PROC: {
+            chunk ch = {0};
+            if (!svc_getargs(transp, (xdrproc_t)xdr_chunk, (caddr_t)&ch)) {
+                svcerr_decode(transp);
+                return;
+            }
+            int *res = send_file_1_svc(&ch, rqstp);
+            if (!svc_sendreply(transp, (xdrproc_t)xdr_int, (caddr_t)res)) {
+                svcerr_systemerr(transp);
+            }
+            svc_freeargs(transp, (xdrproc_t)xdr_chunk, (caddr_t)&ch);
             return;
+        }
         case MYNFS_MKDIR_PROC:
             svc_sendreply(transp, (xdrproc_t)xdr_int, mynfs_mkdir_1_svc(NULL, rqstp));
             return;
@@ -346,12 +407,32 @@ void nfs_1(struct svc_req *rqstp, register SVCXPRT *transp) {
         case MYNFS_CLOSE_PROC:
             svc_sendreply(transp, (xdrproc_t)xdr_int, mynfs_close_1_svc(NULL, rqstp));
             return;
-        case MYNFS_READ_PROC:
-            svc_sendreply(transp, (xdrproc_t)xdr_chunk, mynfs_read_1_svc(NULL, rqstp));
+        case MYNFS_READ_PROC: {
+            request req = {0};
+            if (!svc_getargs(transp, (xdrproc_t)xdr_request, (caddr_t)&req)) {
+                svcerr_decode(transp);
+                return;
+            }
+            chunk *res = mynfs_read_1_svc(&req, rqstp);
+            if (!svc_sendreply(transp, (xdrproc_t)xdr_chunk, (caddr_t)res)) {
+                svcerr_systemerr(transp);
+            }
+            svc_freeargs(transp, (xdrproc_t)xdr_request, (caddr_t)&req);
             return;
-        case MYNFS_WRITE_PROC:
-            svc_sendreply(transp, (xdrproc_t)xdr_int, mynfs_write_1_svc(NULL, rqstp));
+        }
+        case MYNFS_WRITE_PROC: {
+            chunk ch = {0};
+            if (!svc_getargs(transp, (xdrproc_t)xdr_chunk, (caddr_t)&ch)) {
+                svcerr_decode(transp);
+                return;
+            }
+            int *res = mynfs_write_1_svc(&ch, rqstp);
+            if (!svc_sendreply(transp, (xdrproc_t)xdr_int, (caddr_t)res)) {
+                svcerr_systemerr(transp);
+            }
+            svc_freeargs(transp, (xdrproc_t)xdr_chunk, (caddr_t)&ch);
             return;
+        }
         case MYNFS_OPENDIR_PROC:
             svc_sendreply(transp, (xdrproc_t)xdr_int, mynfs_opendir_1_svc(NULL, rqstp));
             return;
@@ -366,8 +447,10 @@ void nfs_1(struct svc_req *rqstp, register SVCXPRT *transp) {
 
 // Main function to initialize and start the server
 int main() {
-    // Unset any previous registrations
+#ifndef __APPLE__
+    // Unset any previous registrations (Linux)
     pmap_unset(NFS_PROGRAM, NFS_VERSION_1);
+#endif
 
     // Create an RPC server handle
     SVCXPRT *transp;

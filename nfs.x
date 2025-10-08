@@ -6,7 +6,9 @@ const MAX_FILENAMES_LENGTH = 1280;
 
 struct request {
    string filename<FILENAME_LENGTH>;
-   int start;
+   int size;
+   int src_offset;
+   int dest_offset;
 };
 
 struct chunk {
