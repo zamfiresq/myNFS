@@ -1,0 +1,123 @@
+/Library/Developer/CommandLineTools/usr/bin/make -f Makefile.nfs clean
+rm -f core nfs_client.o nfs_clnt.o nfs_xdr.o nfs_server.o nfs_svc.o nfs_xdr.o nfs_client nfs_server
+/Library/Developer/CommandLineTools/usr/bin/make -f Makefile.nfs CC=clang CFLAGS="-I/opt/homebrew/include/tirpc -fsanitize=address" LDFLAGS="-L/opt/homebrew/lib -ltirpc -fsanitize=address" all
+clang -I/opt/homebrew/include/tirpc -fsanitize=address -c nfs_client.c -o nfs_client.o
+clang -I/opt/homebrew/include/tirpc -fsanitize=address -c nfs_clnt.c -o nfs_clnt.o
+nfs_clnt.c:18:26: error: incompatible function pointer types passing 'bool_t (XDR *, char **)' (aka 'int (struct __rpc_xdr *, char **)') to parameter of type 'xdrproc_t' (aka 'int (*)(struct __rpc_xdr *, ...)') [-Wincompatible-function-pointer-types]
+   18 |         if (clnt_call(clnt, ls, xdr_wrapstring, argp, xdr_wrapstring, &clnt_res, TIMEOUT) != RPC_SUCCESS)
+      |                                 ^~~~~~~~~~~~~~
+/opt/homebrew/include/tirpc/rpc/clnt.h:166:38: note: expanded from macro 'clnt_call'
+  166 |         ((*(rh)->cl_ops->cl_call)(rh, proc, xargs, \
+      |                                             ^~~~~
+nfs_clnt.c:18:48: error: incompatible function pointer types passing 'bool_t (XDR *, char **)' (aka 'int (struct __rpc_xdr *, char **)') to parameter of type 'xdrproc_t' (aka 'int (*)(struct __rpc_xdr *, ...)') [-Wincompatible-function-pointer-types]
+   18 |         if (clnt_call(clnt, ls, xdr_wrapstring, argp, xdr_wrapstring, &clnt_res, TIMEOUT) != RPC_SUCCESS)
+      |                                                       ^~~~~~~~~~~~~~
+/opt/homebrew/include/tirpc/rpc/clnt.h:167:10: note: expanded from macro 'clnt_call'
+  167 |                 argsp, xres, resp, secs))
+      |                        ^~~~
+nfs_clnt.c:29:30: error: incompatible function pointer types passing 'bool_t (XDR *, char **)' (aka 'int (struct __rpc_xdr *, char **)') to parameter of type 'xdrproc_t' (aka 'int (*)(struct __rpc_xdr *, ...)') [-Wincompatible-function-pointer-types]
+   29 |         if (clnt_call(clnt, create, xdr_wrapstring, argp, xdr_int, &clnt_res, TIMEOUT) != RPC_SUCCESS)
+      |                                     ^~~~~~~~~~~~~~
+/opt/homebrew/include/tirpc/rpc/clnt.h:166:38: note: expanded from macro 'clnt_call'
+  166 |         ((*(rh)->cl_ops->cl_call)(rh, proc, xargs, \
+      |                                             ^~~~~
+nfs_clnt.c:29:52: error: incompatible function pointer types passing 'bool_t (XDR *, int *)' (aka 'int (struct __rpc_xdr *, int *)') to parameter of type 'xdrproc_t' (aka 'int (*)(struct __rpc_xdr *, ...)') [-Wincompatible-function-pointer-types]
+   29 |         if (clnt_call(clnt, create, xdr_wrapstring, argp, xdr_int, &clnt_res, TIMEOUT) != RPC_SUCCESS)
+      |                                                           ^~~~~~~
+/opt/homebrew/include/tirpc/rpc/clnt.h:167:10: note: expanded from macro 'clnt_call'
+  167 |                 argsp, xres, resp, secs))
+      |                        ^~~~
+nfs_clnt.c:40:30: error: incompatible function pointer types passing 'bool_t (XDR *, char **)' (aka 'int (struct __rpc_xdr *, char **)') to parameter of type 'xdrproc_t' (aka 'int (*)(struct __rpc_xdr *, ...)') [-Wincompatible-function-pointer-types]
+   40 |         if (clnt_call(clnt, delete, xdr_wrapstring, argp, xdr_int, &clnt_res, TIMEOUT) != RPC_SUCCESS)
+      |                                     ^~~~~~~~~~~~~~
+/opt/homebrew/include/tirpc/rpc/clnt.h:166:38: note: expanded from macro 'clnt_call'
+  166 |         ((*(rh)->cl_ops->cl_call)(rh, proc, xargs, \
+      |                                             ^~~~~
+nfs_clnt.c:40:52: error: incompatible function pointer types passing 'bool_t (XDR *, int *)' (aka 'int (struct __rpc_xdr *, int *)') to parameter of type 'xdrproc_t' (aka 'int (*)(struct __rpc_xdr *, ...)') [-Wincompatible-function-pointer-types]
+   40 |         if (clnt_call(clnt, delete, xdr_wrapstring, argp, xdr_int, &clnt_res, TIMEOUT) != RPC_SUCCESS)
+      |                                                           ^~~~~~~
+/opt/homebrew/include/tirpc/rpc/clnt.h:167:10: note: expanded from macro 'clnt_call'
+  167 |                 argsp, xres, resp, secs))
+      |                        ^~~~
+nfs_clnt.c:51:37: error: incompatible function pointer types passing 'bool_t (XDR *, request *)' (aka 'int (struct __rpc_xdr *, struct request *)') to parameter of type 'xdrproc_t' (aka 'int (*)(struct __rpc_xdr *, ...)') [-Wincompatible-function-pointer-types]
+   51 |         if (clnt_call(clnt, retrieve_file, xdr_request, argp, xdr_chunk, &clnt_res, TIMEOUT) != RPC_SUCCESS)
+      |                                            ^~~~~~~~~~~
+/opt/homebrew/include/tirpc/rpc/clnt.h:166:38: note: expanded from macro 'clnt_call'
+  166 |         ((*(rh)->cl_ops->cl_call)(rh, proc, xargs, \
+      |                                             ^~~~~
+nfs_clnt.c:51:56: error: incompatible function pointer types passing 'bool_t (XDR *, chunk *)' (aka 'int (struct __rpc_xdr *, struct chunk *)') to parameter of type 'xdrproc_t' (aka 'int (*)(struct __rpc_xdr *, ...)') [-Wincompatible-function-pointer-types]
+   51 |         if (clnt_call(clnt, retrieve_file, xdr_request, argp, xdr_chunk, &clnt_res, TIMEOUT) != RPC_SUCCESS)
+      |                                                               ^~~~~~~~~
+/opt/homebrew/include/tirpc/rpc/clnt.h:167:10: note: expanded from macro 'clnt_call'
+  167 |                 argsp, xres, resp, secs))
+      |                        ^~~~
+nfs_clnt.c:62:33: error: incompatible function pointer types passing 'bool_t (XDR *, chunk *)' (aka 'int (struct __rpc_xdr *, struct chunk *)') to parameter of type 'xdrproc_t' (aka 'int (*)(struct __rpc_xdr *, ...)') [-Wincompatible-function-pointer-types]
+   62 |         if (clnt_call(clnt, send_file, xdr_chunk, argp, xdr_int, &clnt_res, TIMEOUT) != RPC_SUCCESS)
+      |                                        ^~~~~~~~~
+/opt/homebrew/include/tirpc/rpc/clnt.h:166:38: note: expanded from macro 'clnt_call'
+  166 |         ((*(rh)->cl_ops->cl_call)(rh, proc, xargs, \
+      |                                             ^~~~~
+nfs_clnt.c:62:50: error: incompatible function pointer types passing 'bool_t (XDR *, int *)' (aka 'int (struct __rpc_xdr *, int *)') to parameter of type 'xdrproc_t' (aka 'int (*)(struct __rpc_xdr *, ...)') [-Wincompatible-function-pointer-types]
+   62 |         if (clnt_call(clnt, send_file, xdr_chunk, argp, xdr_int, &clnt_res, TIMEOUT) != RPC_SUCCESS)
+      |                                                         ^~~~~~~
+/opt/homebrew/include/tirpc/rpc/clnt.h:167:10: note: expanded from macro 'clnt_call'
+  167 |                 argsp, xres, resp, secs))
+      |                        ^~~~
+nfs_clnt.c:73:35: error: incompatible function pointer types passing 'bool_t (XDR *, char **)' (aka 'int (struct __rpc_xdr *, char **)') to parameter of type 'xdrproc_t' (aka 'int (*)(struct __rpc_xdr *, ...)') [-Wincompatible-function-pointer-types]
+   73 |         if (clnt_call(clnt, mynfs_mkdir, xdr_wrapstring, argp, xdr_int, &clnt_res, TIMEOUT) != RPC_SUCCESS)
+      |                                          ^~~~~~~~~~~~~~
+/opt/homebrew/include/tirpc/rpc/clnt.h:166:38: note: expanded from macro 'clnt_call'
+  166 |         ((*(rh)->cl_ops->cl_call)(rh, proc, xargs, \
+      |                                             ^~~~~
+nfs_clnt.c:73:57: error: incompatible function pointer types passing 'bool_t (XDR *, int *)' (aka 'int (struct __rpc_xdr *, int *)') to parameter of type 'xdrproc_t' (aka 'int (*)(struct __rpc_xdr *, ...)') [-Wincompatible-function-pointer-types]
+   73 |         if (clnt_call(clnt, mynfs_mkdir, xdr_wrapstring, argp, xdr_int, &clnt_res, TIMEOUT) != RPC_SUCCESS)
+      |                                                                ^~~~~~~
+/opt/homebrew/include/tirpc/rpc/clnt.h:167:10: note: expanded from macro 'clnt_call'
+  167 |                 argsp, xres, resp, secs))
+      |                        ^~~~
+nfs_clnt.c:84:36: error: incompatible function pointer types passing 'bool_t (XDR *, char **)' (aka 'int (struct __rpc_xdr *, char **)') to parameter of type 'xdrproc_t' (aka 'int (*)(struct __rpc_xdr *, ...)') [-Wincompatible-function-pointer-types]
+   84 |         if (clnt_call(clnt, mynfs_remdir, xdr_wrapstring, argp, xdr_int, &clnt_res, TIMEOUT) != RPC_SUCCESS)
+      |                                           ^~~~~~~~~~~~~~
+/opt/homebrew/include/tirpc/rpc/clnt.h:166:38: note: expanded from macro 'clnt_call'
+  166 |         ((*(rh)->cl_ops->cl_call)(rh, proc, xargs, \
+      |                                             ^~~~~
+nfs_clnt.c:84:58: error: incompatible function pointer types passing 'bool_t (XDR *, int *)' (aka 'int (struct __rpc_xdr *, int *)') to parameter of type 'xdrproc_t' (aka 'int (*)(struct __rpc_xdr *, ...)') [-Wincompatible-function-pointer-types]
+   84 |         if (clnt_call(clnt, mynfs_remdir, xdr_wrapstring, argp, xdr_int, &clnt_res, TIMEOUT) != RPC_SUCCESS)
+      |                                                                 ^~~~~~~
+/opt/homebrew/include/tirpc/rpc/clnt.h:167:10: note: expanded from macro 'clnt_call'
+  167 |                 argsp, xres, resp, secs))
+      |                        ^~~~
+nfs_clnt.c:95:34: error: incompatible function pointer types passing 'bool_t (XDR *, request *)' (aka 'int (struct __rpc_xdr *, struct request *)') to parameter of type 'xdrproc_t' (aka 'int (*)(struct __rpc_xdr *, ...)') [-Wincompatible-function-pointer-types]
+   95 |         if (clnt_call(clnt, mynfs_read, xdr_request, argp, xdr_chunk, &clnt_res, TIMEOUT) != RPC_SUCCESS)
+      |                                         ^~~~~~~~~~~
+/opt/homebrew/include/tirpc/rpc/clnt.h:166:38: note: expanded from macro 'clnt_call'
+  166 |         ((*(rh)->cl_ops->cl_call)(rh, proc, xargs, \
+      |                                             ^~~~~
+nfs_clnt.c:95:53: error: incompatible function pointer types passing 'bool_t (XDR *, chunk *)' (aka 'int (struct __rpc_xdr *, struct chunk *)') to parameter of type 'xdrproc_t' (aka 'int (*)(struct __rpc_xdr *, ...)') [-Wincompatible-function-pointer-types]
+   95 |         if (clnt_call(clnt, mynfs_read, xdr_request, argp, xdr_chunk, &clnt_res, TIMEOUT) != RPC_SUCCESS)
+      |                                                            ^~~~~~~~~
+/opt/homebrew/include/tirpc/rpc/clnt.h:167:10: note: expanded from macro 'clnt_call'
+  167 |                 argsp, xres, resp, secs))
+      |                        ^~~~
+nfs_clnt.c:106:35: error: incompatible function pointer types passing 'bool_t (XDR *, chunk *)' (aka 'int (struct __rpc_xdr *, struct chunk *)') to parameter of type 'xdrproc_t' (aka 'int (*)(struct __rpc_xdr *, ...)') [-Wincompatible-function-pointer-types]
+  106 |         if (clnt_call(clnt, mynfs_write, xdr_chunk, argp, xdr_int, &clnt_res, TIMEOUT) != RPC_SUCCESS)
+      |                                          ^~~~~~~~~
+/opt/homebrew/include/tirpc/rpc/clnt.h:166:38: note: expanded from macro 'clnt_call'
+  166 |         ((*(rh)->cl_ops->cl_call)(rh, proc, xargs, \
+      |                                             ^~~~~
+nfs_clnt.c:106:52: error: incompatible function pointer types passing 'bool_t (XDR *, int *)' (aka 'int (struct __rpc_xdr *, int *)') to parameter of type 'xdrproc_t' (aka 'int (*)(struct __rpc_xdr *, ...)') [-Wincompatible-function-pointer-types]
+  106 |         if (clnt_call(clnt, mynfs_write, xdr_chunk, argp, xdr_int, &clnt_res, TIMEOUT) != RPC_SUCCESS)
+      |                                                           ^~~~~~~
+/opt/homebrew/include/tirpc/rpc/clnt.h:167:10: note: expanded from macro 'clnt_call'
+  167 |                 argsp, xres, resp, secs))
+      |                        ^~~~
+nfs_clnt.c:117:37: error: incompatible function pointer types passing 'bool_t (XDR *, readdir_args *)' (aka 'int (struct __rpc_xdr *, struct readdir_args *)') to parameter of type 'xdrproc_t' (aka 'int (*)(struct __rpc_xdr *, ...)') [-Wincompatible-function-pointer-types]
+  117 |         if (clnt_call(clnt, mynfs_readdir, xdr_readdir_args, argp, xdr_readdir_result, &clnt_res, TIMEOUT) != RPC_SUCCESS)
+      |                                            ^~~~~~~~~~~~~~~~
+/opt/homebrew/include/tirpc/rpc/clnt.h:166:38: note: expanded from macro 'clnt_call'
+  166 |         ((*(rh)->cl_ops->cl_call)(rh, proc, xargs, \
+      |                                             ^~~~~
+fatal error: too many errors emitted, stopping now [-ferror-limit=]
+20 errors generated.
+make[1]: *** [nfs_clnt.o] Error 1
+make: *** [mac] Error 2

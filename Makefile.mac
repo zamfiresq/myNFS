@@ -1,0 +1,38 @@
+# Makefile.mac - pentru compilare pe macOS (fara tirpc)
+
+CLIENT = nfs_client
+SERVER = nfs_server
+
+# surse si fisiere obiect
+SOURCES_XDR = nfs.x
+SOURCES_CLNT = nfs_client.c nfs_clnt.c nfs_xdr.c
+SOURCES_SVC = nfs_server.c nfs_svc.c nfs_xdr.c
+OBJECTS_CLNT = $(SOURCES_CLNT:.c=.o)
+OBJECTS_SVC = $(SOURCES_SVC:.c=.o)
+
+# compiler si flags pentru macOS
+CC = clang
+CFLAGS = -fsanitize=address
+LDFLAGS = -fsanitize=address
+
+# tinte
+all: $(CLIENT) $(SERVER)
+
+# generare cod RPC
+nfs_clnt.c nfs_svc.c nfs_xdr.c nfs.h: nfs.x
+	rpcgen -C nfs.x
+
+# reguli pentru .o
+%.o: %.c
+	$(CC) $(CFLAGS) -c $< -o $@
+
+# client si server
+$(CLIENT): $(OBJECTS_CLNT)
+	$(CC) -o $(CLIENT) $(OBJECTS_CLNT) $(LDFLAGS)
+
+$(SERVER): nfs_server.o nfs_xdr.o
+	$(CC) -o $(SERVER) nfs_server.o nfs_xdr.o $(LDFLAGS)
+
+# curatare
+clean:
+	rm -f core $(OBJECTS_CLNT) $(OBJECTS_SVC) $(CLIENT) $(SERVER) nfs_clnt.c nfs_svc.c nfs_xdr.c nfs.h

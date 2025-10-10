@@ -6,60 +6,110 @@
 #include "nfs.h"
 
 bool_t
-xdr_request(XDR *xdrs, request *objp)
+xdr_request (XDR *xdrs, request *objp)
 {
+	register int32_t *buf;
 
-	if (!xdr_string(xdrs, &objp->filename, FILENAME_LENGTH))
-		return (FALSE);
-	if (!xdr_int(xdrs, &objp->size))
-		return (FALSE);
-	if (!xdr_int(xdrs, &objp->src_offset))
-		return (FALSE);
-	if (!xdr_int(xdrs, &objp->dest_offset))
-		return (FALSE);
-	return (TRUE);
+
+	if (xdrs->x_op == XDR_ENCODE) {
+		 if (!xdr_string (xdrs, &objp->filename, FILENAME_LENGTH))
+			 return FALSE;
+		buf = XDR_INLINE (xdrs, 4 * BYTES_PER_XDR_UNIT);
+		if (buf == NULL) {
+			 if (!xdr_int (xdrs, &objp->start))
+				 return FALSE;
+			 if (!xdr_int (xdrs, &objp->src_offset))
+				 return FALSE;
+			 if (!xdr_int (xdrs, &objp->dest_offset))
+				 return FALSE;
+			 if (!xdr_int (xdrs, &objp->size))
+				 return FALSE;
+		} else {
+			IXDR_PUT_LONG(buf, objp->start);
+			IXDR_PUT_LONG(buf, objp->src_offset);
+			IXDR_PUT_LONG(buf, objp->dest_offset);
+			IXDR_PUT_LONG(buf, objp->size);
+		}
+		return TRUE;
+	} else if (xdrs->x_op == XDR_DECODE) {
+		 if (!xdr_string (xdrs, &objp->filename, FILENAME_LENGTH))
+			 return FALSE;
+		buf = XDR_INLINE (xdrs, 4 * BYTES_PER_XDR_UNIT);
+		if (buf == NULL) {
+			 if (!xdr_int (xdrs, &objp->start))
+				 return FALSE;
+			 if (!xdr_int (xdrs, &objp->src_offset))
+				 return FALSE;
+			 if (!xdr_int (xdrs, &objp->dest_offset))
+				 return FALSE;
+			 if (!xdr_int (xdrs, &objp->size))
+				 return FALSE;
+		} else {
+			objp->start = IXDR_GET_LONG(buf);
+			objp->src_offset = IXDR_GET_LONG(buf);
+			objp->dest_offset = IXDR_GET_LONG(buf);
+			objp->size = IXDR_GET_LONG(buf);
+		}
+	 return TRUE;
+	}
+
+	 if (!xdr_string (xdrs, &objp->filename, FILENAME_LENGTH))
+		 return FALSE;
+	 if (!xdr_int (xdrs, &objp->start))
+		 return FALSE;
+	 if (!xdr_int (xdrs, &objp->src_offset))
+		 return FALSE;
+	 if (!xdr_int (xdrs, &objp->dest_offset))
+		 return FALSE;
+	 if (!xdr_int (xdrs, &objp->size))
+		 return FALSE;
+	return TRUE;
 }
 
 bool_t
-xdr_chunk(XDR *xdrs, chunk *objp)
+xdr_chunk (XDR *xdrs, chunk *objp)
 {
+	register int32_t *buf;
 
-	if (!xdr_string(xdrs, &objp->filename, FILENAME_LENGTH))
-		return (FALSE);
-	if (!xdr_bytes(xdrs, (char **)&objp->data.data_val, (u_int *)&objp->data.data_len, DATA_LENGTH))
-		return (FALSE);
-	if (!xdr_int(xdrs, &objp->size))
-		return (FALSE);
-	if (!xdr_int(xdrs, &objp->dest_offset))
-		return (FALSE);
-	return (TRUE);
+	 if (!xdr_string (xdrs, &objp->filename, FILENAME_LENGTH))
+		 return FALSE;
+	 if (!xdr_bytes (xdrs, (char **)&objp->data.data_val, (u_int *) &objp->data.data_len, DATA_LENGTH))
+		 return FALSE;
+	 if (!xdr_int (xdrs, &objp->size))
+		 return FALSE;
+	 if (!xdr_int (xdrs, &objp->dest_offset))
+		 return FALSE;
+	return TRUE;
 }
 
 bool_t
-xdr_opendir_args(XDR *xdrs, opendir_args *objp)
+xdr_opendir_args (XDR *xdrs, opendir_args *objp)
 {
+	register int32_t *buf;
 
-	if (!xdr_string(xdrs, &objp->dirname, DIRNAME_LENGTH))
-		return (FALSE);
-	return (TRUE);
+	 if (!xdr_string (xdrs, &objp->dirname, DIRNAME_LENGTH))
+		 return FALSE;
+	return TRUE;
 }
 
 bool_t
-xdr_readdir_args(XDR *xdrs, readdir_args *objp)
+xdr_readdir_args (XDR *xdrs, readdir_args *objp)
 {
+	register int32_t *buf;
 
-	if (!xdr_string(xdrs, &objp->dirname, DIRNAME_LENGTH))
-		return (FALSE);
-	return (TRUE);
+	 if (!xdr_string (xdrs, &objp->dirname, DIRNAME_LENGTH))
+		 return FALSE;
+	return TRUE;
 }
 
 bool_t
-xdr_readdir_result(XDR *xdrs, readdir_result *objp)
+xdr_readdir_result (XDR *xdrs, readdir_result *objp)
 {
+	register int32_t *buf;
 
-	if (!xdr_string(xdrs, &objp->filenames, MAX_FILENAMES_LENGTH))
-		return (FALSE);
-	if (!xdr_bool(xdrs, &objp->more))
-		return (FALSE);
-	return (TRUE);
+	 if (!xdr_string (xdrs, &objp->filenames, MAX_FILES))
+		 return FALSE;
+	 if (!xdr_bool (xdrs, &objp->more))
+		 return FALSE;
+	return TRUE;
 }

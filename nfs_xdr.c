@@ -6,16 +6,25 @@
 #include "nfs.h"
 
 bool_t
+xdr_rpc_uint(XDR *xdrs, rpc_uint *objp)
+{
+
+	if (!xdr_u_int(xdrs, objp))
+		return (FALSE);
+	return (TRUE);
+}
+
+bool_t
 xdr_request(XDR *xdrs, request *objp)
 {
 
-	if (!xdr_string(xdrs, &objp->filename, FILENAME_LENGTH))
+	if (!xdr_string(xdrs, &objp->filename, MAX_FILENAME_LENGTH))
 		return (FALSE);
-	if (!xdr_int(xdrs, &objp->size))
+	if (!xdr_u_int(xdrs, &objp->size))
 		return (FALSE);
-	if (!xdr_int(xdrs, &objp->src_offset))
+	if (!xdr_u_int(xdrs, &objp->src_offset))
 		return (FALSE);
-	if (!xdr_int(xdrs, &objp->dest_offset))
+	if (!xdr_u_int(xdrs, &objp->dest_offset))
 		return (FALSE);
 	return (TRUE);
 }
@@ -24,22 +33,22 @@ bool_t
 xdr_chunk(XDR *xdrs, chunk *objp)
 {
 
-	if (!xdr_string(xdrs, &objp->filename, FILENAME_LENGTH))
+	if (!xdr_string(xdrs, &objp->filename, MAX_FILENAME_LENGTH))
 		return (FALSE);
-	if (!xdr_bytes(xdrs, (char **)&objp->data.data_val, (u_int *)&objp->data.data_len, DATA_LENGTH))
+	if (!xdr_bytes(xdrs, (char **)&objp->data.data_val, (u_int *)&objp->data.data_len, ~0))
 		return (FALSE);
 	if (!xdr_int(xdrs, &objp->size))
 		return (FALSE);
-	if (!xdr_int(xdrs, &objp->dest_offset))
+	if (!xdr_u_int(xdrs, &objp->dest_offset))
 		return (FALSE);
 	return (TRUE);
 }
 
 bool_t
-xdr_opendir_args(XDR *xdrs, opendir_args *objp)
+xdr_filename_t(XDR *xdrs, filename_t *objp)
 {
 
-	if (!xdr_string(xdrs, &objp->dirname, DIRNAME_LENGTH))
+	if (!xdr_string(xdrs, objp, MAX_FILENAME_LENGTH))
 		return (FALSE);
 	return (TRUE);
 }
@@ -48,7 +57,7 @@ bool_t
 xdr_readdir_args(XDR *xdrs, readdir_args *objp)
 {
 
-	if (!xdr_string(xdrs, &objp->dirname, DIRNAME_LENGTH))
+	if (!xdr_string(xdrs, &objp->dirname, MAX_PATH_LENGTH))
 		return (FALSE);
 	return (TRUE);
 }
@@ -57,9 +66,7 @@ bool_t
 xdr_readdir_result(XDR *xdrs, readdir_result *objp)
 {
 
-	if (!xdr_string(xdrs, &objp->filenames, MAX_FILENAMES_LENGTH))
-		return (FALSE);
-	if (!xdr_bool(xdrs, &objp->more))
+	if (!xdr_array(xdrs, (char **)&objp->filenames.filenames_val, (u_int *)&objp->filenames.filenames_len, MAX_FILES, sizeof(filename_t), (xdrproc_t)xdr_filename_t))
 		return (FALSE);
 	return (TRUE);
 }

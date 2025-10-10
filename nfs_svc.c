@@ -84,11 +84,9 @@ nfs_program_1(struct svc_req *rqstp, SVCXPRT *transp)
 		request retrieve_file_1_arg;
 		chunk send_file_1_arg;
 		char *mynfs_mkdir_1_arg;
-		char *mynfs_open_1_arg;
-		char *mynfs_close_1_arg;
+		char *mynfs_remdir_1_arg;
 		request mynfs_read_1_arg;
 		chunk mynfs_write_1_arg;
-		opendir_args mynfs_opendir_1_arg;
 		readdir_args mynfs_readdir_1_arg;
 	} argument;
 	char *result;
@@ -138,16 +136,10 @@ nfs_program_1(struct svc_req *rqstp, SVCXPRT *transp)
 		local = (char *(*)(char *, struct svc_req *)) mynfs_mkdir_1_svc;
 		break;
 
-	case mynfs_open:
+	case mynfs_remdir:
 		xdr_argument = (xdrproc_t) xdr_wrapstring;
 		xdr_result = (xdrproc_t) xdr_int;
-		local = (char *(*)(char *, struct svc_req *)) mynfs_open_1_svc;
-		break;
-
-	case mynfs_close:
-		xdr_argument = (xdrproc_t) xdr_wrapstring;
-		xdr_result = (xdrproc_t) xdr_int;
-		local = (char *(*)(char *, struct svc_req *)) mynfs_close_1_svc;
+		local = (char *(*)(char *, struct svc_req *)) mynfs_remdir_1_svc;
 		break;
 
 	case mynfs_read:
@@ -160,12 +152,6 @@ nfs_program_1(struct svc_req *rqstp, SVCXPRT *transp)
 		xdr_argument = (xdrproc_t) xdr_chunk;
 		xdr_result = (xdrproc_t) xdr_int;
 		local = (char *(*)(char *, struct svc_req *)) mynfs_write_1_svc;
-		break;
-
-	case mynfs_opendir:
-		xdr_argument = (xdrproc_t) xdr_opendir_args;
-		xdr_result = (xdrproc_t) xdr_int;
-		local = (char *(*)(char *, struct svc_req *)) mynfs_opendir_1_svc;
 		break;
 
 	case mynfs_readdir:
