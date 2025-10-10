@@ -1,55 +1,34 @@
-# myNFS
+# myNFS-MacOS
 
-## Project Overview
+This repository is based on **[myNFS-Linux](https://github.com/zamfiresq/myNFS-Linux)**, but adapted to run the **NFS client on macOS**. The core implementation comes from the Linux version, with necessary modifications to ensure compatibility on Mac.
 
-This project implements a **Network File System (NFS)** client and server, allowing remote access to a shared filesystem over a network. It involves building both the **NFS server** and **NFS client**, which communicate using the **Remote Procedure Call (RPC)** protocol. This setup allows the client to invoke procedures on the server without needing to know the underlying details of how those procedures are executed, ensuring seamless interaction between systems.
+## Features
 
-## Key Features
+- **NFS Client**: Run the NFS client on macOS, with support for basic NFS operations.
+- **Cross-Platform Compatibility**: The client is designed to work on both Linux and macOS, with platform-specific adaptations.
 
-- **RPC Communication**: The NFS client and server communicate through RPC, using functions such as `opendir`, `readdir`, `mkdir` etc.
-- **File Operations**: The NFS client can perform various file operations (e.g., listing directories, creating files, and directories) remotely on the NFS server.
-- **Error Handling**: The project includes basic error handling for timeouts, connection errors, and memory allocation issues.
-- **Memory Management**: Tools such as **Valgrind** and **AddressSanitizer** are used to detect and manage memory leaks, buffer overflows, and segmentation faults.
+## Prerequisites
 
-## Technical Details
+- **macOS**: The client is designed to run on macOS.
+- **NFS Server**: An NFS server must be set up and running to test the client. (Linux in this case)
 
-### Dependencies
+## Building
+To build the NFS client on macOS, follow these steps:
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/zamfiresq/myNFS-MacBook.git
+   cd myNFS-MacBook
+    ```
+2. Build the project using `make`:
+    ```bash
+    make -f Makefile.mac
+    ```
 
-- **LibTIRPC**: The project uses `libtirpc` to implement the transport-independent RPC.
-  - To install: `sudo apt-get install libtirpc-dev`
-- **GCC**: The project is compiled using the GCC compiler with `-ltirpc` linked.
-- **GDB & Valgrind**: For debugging and memory error detection.
-
-### Compilation
-
-To compile the NFS client:
-
+## Running the MacOS NFS Client -> Linux NFS Server
+To run the NFS client on macOS, use the following command:
 ```bash
-gcc -g -o nfs_client nfs_client.c -ltirpc
+./nfs_client <server_ip> 
 ```
-To compile the NFS server:
+Replace `<server_ip>` with the IP address of your NFS server.
 
-```bash
-gcc -g -o nfs_server nfs_server.c -ltirpc
-
-```
-Or:
-```bash
-make -f Makefile.nfs
-```
-
-### Running the Project
-
-Start the NFS server:
-
-```bash
-
-./nfs_server
-```
-
-Run the NFS client to connect to the server:
-
-```bash
-
-./nfs_client
-```
+![alt text](image.png)
